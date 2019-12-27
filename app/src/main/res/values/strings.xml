@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">SapiHub</string>
+    <string name="moodleName">Moodle felhasználónév</string>
+    <string name="moodlePassword">Moodle jelszó</string>
+    <string name="login">Bejelentkezés</string>
+    <string name="rememberMe">Emlékezz rám</string>
+    <string name="loginError">"Érvénytelen belépés, próbálja újra"</string>
+    <string name="menu">Menü</string>
+    <string name="notifications">Értesítések</string>
+    <string name="home">Főoldal</string>
+    <string name="messages">Üzenetek</string>
+    <string name="profile">Profil</string>
+    <string name="loading">Betöltés…</string>
 </resources>
