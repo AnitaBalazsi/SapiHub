@@ -9,7 +9,7 @@
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleHorizontal"
-        android:theme="@style/ProgressBar"
+        android:theme="@style/ProgressDialog"
         android:layout_width="274dp"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"

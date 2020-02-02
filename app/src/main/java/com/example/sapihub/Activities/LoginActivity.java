@@ -13,9 +13,11 @@ import android.widget.EditText;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.example.sapihub.Helpers.DatabaseHelper;
 import com.example.sapihub.Helpers.MoodleAPI;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Token;
+import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
 
 import retrofit2.Call;
@@ -49,7 +51,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         passwordInput = findViewById(R.id.password);
         rememberMe = findViewById(R.id.rememberMe);
 
-        loadingDialog = new ProgressDialog(this);
+        loadingDialog = new ProgressDialog(this, R.style.ProgressDialog);
         loadingDialog.setMessage(getString(R.string.loading));
 
         sharedPreferences = getSharedPreferences("UserData", Context.MODE_PRIVATE);
@@ -78,8 +80,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     public void logIn(){
         loadingDialog.show();
-        String username = nameInput.getText().toString();
-        String password = passwordInput.getText().toString();
+        final String username = nameInput.getText().toString();
+        final String password = passwordInput.getText().toString();
         String service = "moodle_mobile_app";
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -93,11 +95,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void onResponse(Call<Token> call, Response<Token> response) {
                 if (response.body().getToken() != null){
                     loadingDialog.dismiss();
+
+                    //add user to database
+                    DatabaseHelper.addUser(new User(username,password,response.body().getToken()));
+
                     Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                     startActivity(intent);
                 } else {
                     loadingDialog.dismiss();
-                    Utils.getInstance().showSnackbar(
+                    Utils.showSnackbar(
                             findViewById(android.R.id.content),
                             getString(R.string.loginError),
                             ContextCompat.getColor(getBaseContext(), R.color.colorRed));

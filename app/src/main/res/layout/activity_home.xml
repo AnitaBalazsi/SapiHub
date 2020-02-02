@@ -32,10 +32,12 @@
         </RelativeLayout>
     </RelativeLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="asd"
-        android:gravity="start"/>
+    <!-- contents of drawer -->
+    <ListView
+        android:id="@+id/menuList"
+        android:background="@color/colorWhite"
+        android:layout_width="240dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"/>
 
 </androidx.drawerlayout.widget.DrawerLayout>

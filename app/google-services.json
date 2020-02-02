@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "781494771293",
+    "firebase_url": "https://sapihub-b1072.firebaseio.com",
+    "project_id": "sapihub-b1072",
+    "storage_bucket": "sapihub-b1072.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:781494771293:android:1b06901b6e4408e10277b4",
+        "android_client_info": {
+          "package_name": "com.example.sapihub"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "781494771293-m6pddgssob0j34bvhogpv92b765i5gqe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sapihub",
+            "certificate_hash": "8fdb36617e03cea6e07e8b90d55a9ac3706cb81d"
+          }
+        },
+        {
+          "client_id": "781494771293-776p17stublgef4u630b1ra0c0sskh9j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrd6wAKhgtJkx_qYh3qSrBYXH2XOym9SA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "781494771293-776p17stublgef4u630b1ra0c0sskh9j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

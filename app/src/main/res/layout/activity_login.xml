@@ -12,6 +12,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="60dp"
         android:fontFamily="@font/lobster"
+        android:textColor="@color/colorWhite"
         android:text="@string/app_name"
         android:textSize="100sp" />
 
