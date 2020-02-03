@@ -28,6 +28,10 @@ import com.example.sapihub.R;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -87,13 +91,13 @@ public class AddNewsFragment extends Fragment implements View.OnClickListener {
             String newsTitle = title.getText().toString().trim();
             String newsContent = content.getText().toString().trim();
             String image = imageName.getText().toString().trim();
-
+            String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
             if (!image.isEmpty()){
                 DatabaseHelper.uploadImage(image,imagePath);
-                DatabaseHelper.addNews(new News(newsTitle,newsContent,image));
+                DatabaseHelper.addNews(new News(newsTitle,date,newsContent,image));
             } else {
-                DatabaseHelper.addNews(new News(newsTitle,newsContent,null));
+                DatabaseHelper.addNews(new News(newsTitle,date,newsContent,null));
             }
         }
 

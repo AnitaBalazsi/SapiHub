@@ -36,7 +36,7 @@
     <ListView
         android:id="@+id/menuList"
         android:background="@color/colorWhite"
-        android:layout_width="240dp"
+        android:layout_width="200dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"/>
 

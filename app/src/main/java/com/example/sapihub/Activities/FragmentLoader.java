@@ -22,7 +22,7 @@ public class FragmentLoader extends AppCompatActivity{
         String[] menuItems = this.getResources().getStringArray(R.array.homeMenu);
         String fragment = getIntent().getExtras().getString("fragmentName");
         if (fragment.equals(menuItems[0])){
-            loadFragment(new NewsFragment());
+            loadFragment(new NewsFragment(),null);
         }
 
     }
@@ -39,14 +39,16 @@ public class FragmentLoader extends AppCompatActivity{
 
     }
 
-    private void loadFragment(Fragment fragment){
+    private void loadFragment(Fragment fragment, Bundle bundle){
+        fragment.setArguments(bundle);
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.add(R.id.fragmentContainer,fragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }
 
-    public void replaceFragment(Fragment fragment){
+    public void replaceFragment(Fragment fragment, Bundle bundle){
+        fragment.setArguments(bundle);
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.fragmentContainer,fragment);
         fragmentTransaction.addToBackStack(null);

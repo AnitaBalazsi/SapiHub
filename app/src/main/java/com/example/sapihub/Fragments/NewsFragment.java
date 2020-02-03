@@ -31,7 +31,7 @@ import java.util.ArrayList;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NewsFragment extends Fragment implements View.OnClickListener {
+public class NewsFragment extends Fragment implements View.OnClickListener, NewsListAdapter.ListViewHolder.NewsClickListener {
     private NewsListAdapter adapter;
     private ProgressDialog loadingDialog;
     private Button addNewsButton;
@@ -66,7 +66,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener {
         listView.setLayoutManager(layoutManager);
         listView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
 
-        adapter = new NewsListAdapter(newsList,getContext());
+        adapter = new NewsListAdapter(newsList,getContext(),this);
         listView.setAdapter(adapter);
 
         loadingDialog = new ProgressDialog(getContext(), R.style.ProgressDialog);
@@ -95,8 +95,13 @@ public class NewsFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        ((FragmentLoader)getActivity()).replaceFragment(new AddNewsFragment());
-
+        ((FragmentLoader)getActivity()).replaceFragment(new AddNewsFragment(),null);
     }
 
+    @Override
+    public void onNewsClick(int position) {
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("selectedNews",newsList.get(position));
+        ((FragmentLoader)getActivity()).replaceFragment(new NewsDetailFragment(),bundle);
+    }
 }

@@ -27,4 +27,12 @@
     <string name="addImage">Kép hozzáadása</string>
     <string name="send">Küldés</string>
     <string name="emptyField">A mező nem lehet üres!</string>
+    <string name="monday">H</string>
+    <string name="tuesday">K</string>
+    <string name="wednesday">SZE</string>
+    <string name="thursday">CS</string>
+    <string name="friday">P</string>
+    <string name="saturday">SZO</string>
+    <string name="sunday">V</string>
+    <string name="cancel">Mégse</string>
 </resources>

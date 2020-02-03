@@ -1,18 +1,31 @@
 package com.example.sapihub.Model;
 
-public class News {
+import java.io.Serializable;
+
+public class News implements Serializable {
     private String title;
+    private String date;
     private String content;
     private String imageName;
 
     public News() {
     }
 
-    public News(String title, String content, String imageName) {
+    public News(String title, String date, String content, String imageName) {
         this.title = title;
+        this.date = date;
         this.content = content;
         this.imageName = imageName;
     }
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+
 
     public String getTitle() {
         return title;
