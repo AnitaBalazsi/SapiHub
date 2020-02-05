@@ -9,16 +9,31 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.sapihub.Helpers.DatabaseHelper;
+import com.example.sapihub.Helpers.EventListAdapter;
+import com.example.sapihub.Helpers.Utils;
+import com.example.sapihub.Model.Event;
 import com.example.sapihub.R;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class HomeFragment extends Fragment {
+    private RecyclerView listView;
+    private RecyclerView.LayoutManager layoutManager;
+    private EventListAdapter eventListAdapter;
+    private List<Event> eventList = new ArrayList<>();
 
     public HomeFragment() {
         // Required empty public constructor
@@ -36,5 +51,39 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        initializeVariables();
+        getData();
     }
+
+    private void getData() {
+        DatabaseHelper.eventsReference.child(Utils.getCurrentUser(getContext())).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                eventList.clear();
+                for (DataSnapshot eventData : dataSnapshot.getChildren()){
+                    Event event = eventData.getValue(Event.class);
+                    eventList.add(event);
+                    eventListAdapter.notifyDataSetChanged();
+
+                    //todo compare
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void initializeVariables() {
+        listView = getView().findViewById(R.id.eventList);
+
+        layoutManager = new LinearLayoutManager(getContext());
+        listView.setLayoutManager(layoutManager);
+        eventListAdapter = new EventListAdapter(eventList);
+        listView.setAdapter(eventListAdapter);
+    }
+
+
 }

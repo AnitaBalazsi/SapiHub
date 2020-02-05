@@ -47,27 +47,29 @@ public class GridAdapter extends ArrayAdapter {
         //display days
         TextView dayCell = convertView.findViewById(R.id.day);
         Date mDate = monthlyDates.get(position);
+
         Calendar calendar = Calendar.getInstance();
         int currentDay = calendar.get(Calendar.DAY_OF_MONTH);
         int currentMonth = calendar.get(Calendar.MONTH)+1;
         int currentYear = calendar.get(Calendar.YEAR);
-        calendar.setTime(mDate);
 
+        calendar.setTime(mDate);
         int displayDay = calendar.get(Calendar.DAY_OF_MONTH);
         int displayMonth = calendar.get(Calendar.MONTH)+1;
         int displayYear = calendar.get(Calendar.YEAR);
-        int selectedDay = selectedDate.get(Calendar.DAY_OF_MONTH);
-        int selectedMonth = selectedDate.get(Calendar.MONTH)+1;
-        int selectedYear = selectedDate.get(Calendar.YEAR);
+
         dayCell.setText(String.valueOf(displayDay));
 
         //highlight current day
         if (displayDay == currentDay && displayMonth == currentMonth && displayYear == currentYear){
             dayCell.setTextColor(ContextCompat.getColor(getContext(),R.color.colorGreen));
-            dayCell.setTypeface(null, Typeface.BOLD);
+            dayCell.setTypeface(null,Typeface.BOLD);
         }
-        if (displayMonth != selectedMonth){
-            dayCell.setTextColor(0);
+
+        //highlight days from selected month todo
+        int selectedMonth = selectedDate.get(Calendar.MONTH)+1;
+        if (displayMonth == selectedMonth){
+            dayCell.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.colorGray));
         }
 
         //display events

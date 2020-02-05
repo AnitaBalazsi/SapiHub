@@ -7,9 +7,19 @@
     tools:context=".Fragments.HomeFragment">
 
     <com.example.sapihub.Helpers.CustomCalendar
+        android:id="@+id/calendar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"/>
+        android:layout_alignParentEnd="true">
+
+    </com.example.sapihub.Helpers.CustomCalendar>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/eventList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/calendar"
+        android:layout_margin="20dp"/>
 </RelativeLayout>

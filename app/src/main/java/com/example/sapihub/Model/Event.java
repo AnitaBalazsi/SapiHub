@@ -1,6 +1,8 @@
 package com.example.sapihub.Model;
 
-public class Event {
+import java.io.Serializable;
+
+public class Event implements Serializable {
     private String message;
     private String date;
 

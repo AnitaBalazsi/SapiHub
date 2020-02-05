@@ -35,4 +35,6 @@
     <string name="saturday">SZO</string>
     <string name="sunday">V</string>
     <string name="cancel">Mégse</string>
+    <string name="events">Események:</string>
+    <string name="upcomingEvent">Közelgő esemény:</string>
 </resources>
