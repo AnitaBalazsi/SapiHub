@@ -16,10 +16,24 @@
 
     </com.example.sapihub.Helpers.CustomCalendar>
 
+
+    <TextView
+        android:id="@+id/eventsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/calendar"
+        android:layout_marginTop="20dp"
+        android:textAlignment="center"
+        android:textAllCaps="true"
+        android:textColor="@color/colorGreen"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:text="@string/upcomingEvents"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/eventList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/calendar"
+        android:layout_below="@+id/eventsTitle"
         android:layout_margin="20dp"/>
 </RelativeLayout>

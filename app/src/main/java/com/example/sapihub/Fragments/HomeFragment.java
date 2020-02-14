@@ -21,10 +21,10 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.SimpleDateFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -62,10 +62,18 @@ public class HomeFragment extends Fragment {
                 eventList.clear();
                 for (DataSnapshot eventData : dataSnapshot.getChildren()){
                     Event event = eventData.getValue(Event.class);
-                    eventList.add(event);
-                    eventListAdapter.notifyDataSetChanged();
 
-                    //todo compare
+                    //shows only events that are not over yet
+                    try {
+                        Date todayDate = new Date();
+                        Date eventDate = Utils.stringToDate(event.getDate());
+                        if (eventDate.after(todayDate)){
+                            eventList.add(event);
+                            eventListAdapter.notifyDataSetChanged();
+                        }
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 

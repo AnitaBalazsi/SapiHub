@@ -66,10 +66,10 @@ public class GridAdapter extends ArrayAdapter {
             dayCell.setTypeface(null,Typeface.BOLD);
         }
 
-        //highlight days from selected month todo
+        //hide days from other months
         int selectedMonth = selectedDate.get(Calendar.MONTH)+1;
-        if (displayMonth == selectedMonth){
-            dayCell.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.colorGray));
+        if (displayMonth != selectedMonth){
+            dayCell.setVisibility(View.INVISIBLE);
         }
 
         //display events

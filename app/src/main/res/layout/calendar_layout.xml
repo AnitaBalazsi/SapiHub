@@ -45,6 +45,14 @@
         android:layout_marginTop="10dp"
         android:layout_marginStart="25dp"
         android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:layout_weight="1"
+            android:text="@string/sunday"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -90,14 +98,6 @@
             android:textSize="20sp"
             android:layout_weight="1"
             android:text="@string/saturday"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:textSize="20sp"
-            android:layout_weight="1"
-            android:text="@string/sunday"/>
     </LinearLayout>
 
     <GridView

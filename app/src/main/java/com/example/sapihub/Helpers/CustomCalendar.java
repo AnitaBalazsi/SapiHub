@@ -133,12 +133,12 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
                        eventDateCalendar.setTime(dates.get(position));
                        setAlarmForNotification(eventDateCalendar,event);
 
-                        eventDateCalendar.set(Calendar.DATE,-1);
-                        setAlarmForNotification(eventDateCalendar,event);
+                       eventDateCalendar.add(Calendar.DATE,-1);
+                       setAlarmForNotification(eventDateCalendar,event);
 
-                        eventDateCalendar.set(Calendar.DATE,1);
-                        eventDateCalendar.set(Calendar.HOUR,-1);
-                        setAlarmForNotification(eventDateCalendar,event);
+                       eventDateCalendar.add(Calendar.DATE,1);
+                       eventDateCalendar.add(Calendar.HOUR,-1);
+                       setAlarmForNotification(eventDateCalendar,event);
 
                        addEventDialog.dismiss();
                     }
@@ -206,6 +206,7 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
     }
 
     private void setAlarmForNotification(Calendar calendar, Event event) {
+        //Log.d("proba", String.valueOf(calendar.getTime()));
         Intent intent = new Intent(context.getApplicationContext(), NotificationReceiver.class);
         intent.putExtra("eventMessage",event.getMessage());
         intent.putExtra("eventDate",event.getDate());
@@ -246,7 +247,7 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
         Calendar monthCalendar = (Calendar) calendar.clone();
         monthCalendar.set(Calendar.DAY_OF_MONTH,1);
 
-        int firstDay = monthCalendar.get(Calendar.DAY_OF_WEEK) - 2;
+        int firstDay = monthCalendar.get(Calendar.DAY_OF_WEEK) - 1;
         monthCalendar.add(Calendar.DAY_OF_MONTH, -firstDay);
 
         while (dates.size() < 42){
