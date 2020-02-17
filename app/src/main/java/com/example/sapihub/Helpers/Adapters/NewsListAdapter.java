@@ -1,4 +1,4 @@
-package com.example.sapihub.Helpers;
+package com.example.sapihub.Helpers.Adapters;
 
 import android.content.Context;
 import android.net.Uri;
@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.R;
 import com.google.android.gms.tasks.OnSuccessListener;

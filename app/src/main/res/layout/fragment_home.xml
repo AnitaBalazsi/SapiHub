@@ -28,7 +28,7 @@
         android:textColor="@color/colorGreen"
         android:textSize="15sp"
         android:textStyle="bold"
-        android:text="@string/upcomingEvents"/>
+        android:text="@string/upcomingEvent"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/eventList"

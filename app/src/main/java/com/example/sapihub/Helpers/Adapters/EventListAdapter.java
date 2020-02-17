@@ -1,4 +1,4 @@
-package com.example.sapihub.Helpers;
+package com.example.sapihub.Helpers.Adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;

@@ -7,9 +7,7 @@ import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -26,13 +24,17 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.sapihub.Helpers.Adapters.EventListAdapter;
+import com.example.sapihub.Helpers.Adapters.GridAdapter;
+import com.example.sapihub.Helpers.Database.DatabaseHelper;
+import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Model.Event;
+import com.example.sapihub.Model.Notification;
 import com.example.sapihub.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -130,15 +132,16 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
                        Calendar eventDateCalendar = Calendar.getInstance();
 
                        //send notification in event time, one our and one day before
+                        Notification notification = new Notification(getResources().getString(R.string.upcomingEvent),event.getMessage() + " " + event.getDate(),null);
                        eventDateCalendar.setTime(dates.get(position));
-                       setAlarmForNotification(eventDateCalendar,event);
+                       setAlarmForNotification(eventDateCalendar,notification);
 
                        eventDateCalendar.add(Calendar.DATE,-1);
-                       setAlarmForNotification(eventDateCalendar,event);
+                       setAlarmForNotification(eventDateCalendar,notification);
 
                        eventDateCalendar.add(Calendar.DATE,1);
                        eventDateCalendar.add(Calendar.HOUR,-1);
-                       setAlarmForNotification(eventDateCalendar,event);
+                       setAlarmForNotification(eventDateCalendar,notification);
 
                        addEventDialog.dismiss();
                     }
@@ -205,12 +208,15 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
         });
     }
 
-    private void setAlarmForNotification(Calendar calendar, Event event) {
-        //Log.d("proba", String.valueOf(calendar.getTime()));
+    private void setAlarmForNotification(Calendar calendar, Notification notification) {
+        notification.setDate(Utils.dateToString(calendar.getTime()));
+
         Intent intent = new Intent(context.getApplicationContext(), NotificationReceiver.class);
-        intent.putExtra("eventMessage",event.getMessage());
-        intent.putExtra("eventDate",event.getDate());
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,0,intent,PendingIntent.FLAG_ONE_SHOT);
+        intent.putExtra("notificationTitle",notification.getTitle());
+        intent.putExtra("notificationMessage",notification.getMessage());
+        intent.putExtra("notificationDate",notification.getDate());
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,0,intent,0);
         AlarmManager alarmManager = (AlarmManager) context.getApplicationContext().getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),pendingIntent);
 
@@ -234,10 +240,6 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
 
             }
         });
-    }
-
-    private interface FirebaseCallback{
-        void onCallback();
     }
 
     private void setupCalendar(){

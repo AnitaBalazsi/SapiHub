@@ -17,7 +17,7 @@ import com.example.sapihub.Fragments.HomeFragment;
 import com.example.sapihub.Fragments.MessagesFragment;
 import com.example.sapihub.Fragments.NotificationsFragment;
 import com.example.sapihub.Fragments.ProfileFragment;
-import com.example.sapihub.Helpers.ViewPagerAdapter;
+import com.example.sapihub.Helpers.Adapters.ViewPagerAdapter;
 import com.example.sapihub.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -124,8 +124,8 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
         Bundle bundle = new Bundle();
         bundle.putString("fragmentName",fragmentName);
 
-        Intent newsIntent = new Intent(HomeActivity.this, FragmentLoader.class);
-        newsIntent.putExtras(bundle);
-        startActivity(newsIntent);
+        Intent fragmentLoader = new Intent(HomeActivity.this, FragmentLoader.class);
+        fragmentLoader.putExtras(bundle);
+        startActivity(fragmentLoader);
     }
 }

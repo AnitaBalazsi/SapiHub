@@ -1,4 +1,4 @@
-package com.example.sapihub.Helpers;
+package com.example.sapihub.Helpers.Adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;

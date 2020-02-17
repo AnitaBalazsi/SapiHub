@@ -48,4 +48,6 @@ public class Utils {
         SimpleDateFormat format = new SimpleDateFormat("yyyy. MM. dd. HH:mm");
         return format.parse(date);
     }
+
+
 }

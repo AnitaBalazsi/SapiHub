@@ -11,15 +11,14 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.example.sapihub.Activities.FragmentLoader;
-import com.example.sapihub.Helpers.DatabaseHelper;
-import com.example.sapihub.Helpers.NewsListAdapter;
+import com.example.sapihub.Helpers.Database.DatabaseHelper;
+import com.example.sapihub.Helpers.Adapters.NewsListAdapter;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.R;
 import com.google.firebase.database.DataSnapshot;

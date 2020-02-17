@@ -12,8 +12,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.sapihub.Helpers.DatabaseHelper;
-import com.example.sapihub.Helpers.EventListAdapter;
+import com.example.sapihub.Helpers.Database.DatabaseHelper;
+import com.example.sapihub.Helpers.Adapters.EventListAdapter;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Event;
 import com.example.sapihub.R;

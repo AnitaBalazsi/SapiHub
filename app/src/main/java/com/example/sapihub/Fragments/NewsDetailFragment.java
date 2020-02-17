@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,12 +16,10 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.example.sapihub.Helpers.DatabaseHelper;
+import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.R;
 import com.google.android.gms.tasks.OnSuccessListener;
-
-import org.w3c.dom.Text;
 
 /**
  * A simple {@link Fragment} subclass.

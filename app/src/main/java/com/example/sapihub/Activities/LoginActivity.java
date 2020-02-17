@@ -1,7 +1,9 @@
 package com.example.sapihub.Activities;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -9,16 +11,21 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.RadioGroup;
+import android.widget.Spinner;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import com.example.sapihub.Helpers.DatabaseHelper;
+import com.example.sapihub.Helpers.Database.DatabaseHelper;
+import com.example.sapihub.Helpers.Database.FirebaseLoginCallback;
 import com.example.sapihub.Helpers.MoodleAPI;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Token;
 import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
+
+import java.time.Year;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -27,8 +34,13 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
-    private EditText nameInput, passwordInput;
+    private EditText nameInput, passwordInput, yearInput;
+    private String token;
+    private AlertDialog profileDataDialog;
+    private Spinner degreeInput, departmentInput;
+    private RadioGroup radioGroup;
     private CheckBox rememberMe;
+    private View dialogView;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
     private ProgressDialog loadingDialog;
@@ -94,13 +106,21 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void onResponse(Call<Token> call, Response<Token> response) {
                 if (response.body().getToken() != null){
+                    token = response.body().getToken();
                     loadingDialog.dismiss();
 
-                    //add user to database
-                    DatabaseHelper.addUser(new User(username,password,response.body().getToken()));
-
-                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                    startActivity(intent);
+                    //check if user is already stored in database
+                    DatabaseHelper.isUserStored(response.body().getToken(), new FirebaseLoginCallback() {
+                        @Override
+                        public void onCallback(boolean firstLogin) {
+                            if (firstLogin){
+                                showAddDataDialog();
+                            } else {
+                                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                                startActivity(intent);
+                            }
+                        }
+                    });
                 } else {
                     loadingDialog.dismiss();
                     Utils.showSnackbar(
@@ -115,6 +135,101 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 //TODO
             }
         });
+    }
+
+
+    private void showAddDataDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        dialogView = this.getLayoutInflater().inflate(R.layout.login_dialog_layout,null);
+        builder.setView(dialogView);
+        builder.setCancelable(false);
+
+        yearInput = dialogView.findViewById(R.id.yearInput);
+        departmentInput = dialogView.findViewById(R.id.departmentInput);
+        degreeInput = dialogView.findViewById(R.id.degreeInput);
+
+        radioGroup = dialogView.findViewById(R.id.radioGroup);
+        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (checkedId == 2){
+                    //if student option is checked
+                    yearInput.setVisibility(View.VISIBLE);
+                    degreeInput.setVisibility(View.VISIBLE);
+                } else {
+                    yearInput.setVisibility(View.INVISIBLE);
+                    degreeInput.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+
+        Button sendButton = dialogView.findViewById(R.id.sendButton);
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (validateInputs()){
+                    showConfirmSendDialog();
+                }
+            }
+        });
+
+        profileDataDialog = builder.create();
+        profileDataDialog.show();
+    }
+
+    private void showConfirmSendDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.addProfileData))
+                .setMessage(getString(R.string.confirmationMessage))
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                       storeUserData();
+                       profileDataDialog.dismiss();
+
+                       Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                       startActivity(intent);
+                    }})
+                .setNegativeButton(android.R.string.no, null)
+                .show();
+    }
+
+    private void storeUserData() {
+        User user = new User(nameInput.getText().toString().trim(),token);
+        switch (radioGroup.getCheckedRadioButtonId()){
+            case 1:
+                user.setOccupation(getString(R.string.teacher));
+                break;
+            case 2:
+                user.setOccupation(getString(R.string.student));
+                break;
+        }
+        if (yearInput.getVisibility() == View.VISIBLE){
+            user.setStudyYear(yearInput.getText().toString().trim());
+        }
+        if (degreeInput.getVisibility() == View.VISIBLE){
+            user.setDegree(degreeInput.getSelectedItem().toString());
+        }
+        user.setDepartment(departmentInput.getSelectedItem().toString());
+
+        DatabaseHelper.addUser(user);
+    }
+
+    private boolean validateInputs() {
+        if (radioGroup.getCheckedRadioButtonId() == -1){ // no option is checked
+            Utils.showSnackbar(dialogView,getString(R.string.inputError),getColor(R.color.colorRed));
+            return false;
+        }
+
+        String year = yearInput.getText().toString().trim();
+        if (yearInput.getVisibility() == View.VISIBLE && (yearInput.length() < 4 || year.compareTo(Year.now().toString()) > 0)){
+            //if input is not a four digit number or the year is not valid
+            yearInput.setError(getString(R.string.wrongYearInput));
+            yearInput.requestFocus();
+            return false;
+        }
+
+        return true;
     }
 
     @Override

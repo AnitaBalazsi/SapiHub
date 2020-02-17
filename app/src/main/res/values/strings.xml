@@ -36,5 +36,30 @@
     <string name="sunday">V</string>
     <string name="cancel">Mégse</string>
     <string name="events">Események:</string>
-    <string name="upcomingEvents">Közelgő események:</string>
+    <string name="upcomingEvent">Közelgő esemény:</string>
+    <string name="addProfileData">Profil adatok megadása</string>
+    <string name="teacher">Tanár</string>
+    <string name="student">Diák</string>
+    <string-array name="departmentList">
+        <item>Alkalmazott nyelvészeti</item>
+        <item>Alkalmazott társadalomtudományok</item>
+        <item>Gépészmérnöki</item>
+        <item>Matematika - Informatika</item>
+        <item>Villamosmérnöki</item>
+    </string-array>
+    <string-array name="degreeList">
+        <item>Automatika és alkalmazott informatika</item>
+        <item>Fordító és tolmács</item>
+        <item>Gépészmérnöki</item>
+        <item>Távközlés</item>
+        <item>Informatika</item>
+        <item>Kertészmérnöki</item>
+        <item>Kommunikáció és közkapcsolatok</item>
+        <item>Mechatronika</item>
+        <item>Számítástechnika</item>
+        <item>Tájépítészet</item>
+    </string-array>
+    <string name="wrongYearInput">A megadott évszám nem megfelelő!</string>
+    <string name="inputError">A mezők kitöltése kötelező!</string>
+    <string name="confirmationMessage">A megadott adatok később nem változathatóak meg. Biztos elküldi?</string>
 </resources>
