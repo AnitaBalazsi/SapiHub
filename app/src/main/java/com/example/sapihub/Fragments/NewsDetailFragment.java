@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,7 +56,7 @@ public class NewsDetailFragment extends Fragment {
         //if there is an image attached
         final ImageView imageView = getView().findViewById(R.id.image);
         if (selectedNews.getImageName() != null){
-            DatabaseHelper.storageReference.child(selectedNews.getImageName()).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            DatabaseHelper.newsPictureRef.child(selectedNews.getImageName()).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                 @Override
                 public void onSuccess(Uri uri) {
                     Glide.with(getContext()).load(uri.toString())//.apply(new RequestOptions().placeholder(R.drawable.image_placeholder))

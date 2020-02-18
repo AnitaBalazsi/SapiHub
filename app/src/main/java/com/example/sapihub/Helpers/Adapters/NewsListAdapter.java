@@ -2,6 +2,7 @@ package com.example.sapihub.Helpers.Adapters;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,10 +57,10 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
     private void loadImage(String imageName, final ImageView imageView) {
         //if there is an image attached
         if (imageName != null){
-            DatabaseHelper.storageReference.child(imageName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            DatabaseHelper.newsPictureRef.child(imageName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                 @Override
                 public void onSuccess(Uri uri) {
-                    Glide.with(context).load(uri.toString())//.apply(new RequestOptions().placeholder(R.drawable.image_placeholder))
+                    Glide.with(context).load(uri.toString())
                             .apply(new RequestOptions().override(1000, 600))
                             .into(imageView);
                 }

@@ -61,5 +61,11 @@
     </string-array>
     <string name="wrongYearInput">A megadott évszám nem megfelelő!</string>
     <string name="inputError">A mezők kitöltése kötelező!</string>
-    <string name="confirmationMessage">A megadott adatok később nem változathatóak meg. Biztos elküldi?</string>
+    <string name="confirmProfileData">A megadott adatok később nem változathatóak meg. Biztos elküldi?</string>
+    <string name="deleteProfilePicture">Profilkép törlése</string>
+    <string name="changeProfilePicture">Profilkép módosítása</string>
+    <string name="selectPicture">"Kép kiválasztása"</string>
+    <string name="uploadImage">Kép feltöltése…</string>
+    <string name="uploadingImageSuccessful">Sikeres képfeltöltés</string>
+    <string name="confirmDeletion">Biztosan törli a képet?</string>
 </resources>

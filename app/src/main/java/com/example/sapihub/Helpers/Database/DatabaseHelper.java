@@ -1,13 +1,19 @@
 package com.example.sapihub.Helpers.Database;
 
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Event;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.Model.Notification;
 import com.example.sapihub.Model.User;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -15,15 +21,17 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 public class DatabaseHelper {
     public static DatabaseReference userReference = FirebaseDatabase.getInstance().getReference("Users");
     public static DatabaseReference newsReference = FirebaseDatabase.getInstance().getReference("News");
     public static DatabaseReference eventsReference = FirebaseDatabase.getInstance().getReference("Events");
     public static DatabaseReference notificationsReference = FirebaseDatabase.getInstance().getReference("Notifications");
-    public static StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+    public static StorageReference profilePictureRef = FirebaseStorage.getInstance().getReference("Profile pictures");
+    public static StorageReference newsPictureRef = FirebaseStorage.getInstance().getReference("News pictures");
 
-    public static void isUserStored(final String token, final FirebaseLoginCallback callback){
+    public static void isUserStored(final String token, final FirebaseCallback callback){
         userReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -93,7 +101,54 @@ public class DatabaseHelper {
         notificationsReference.child(username).child(notification.getId()).removeValue();
     }
 
-    public static void uploadImage(String name, Uri imagePath){
-        storageReference.child(name).putFile(imagePath);
+    public static void uploadNewsImage(String name, Uri imagePath){
+        newsPictureRef.child(name).putFile(imagePath);
+    }
+
+    public static void getCurrentUserData (String token, final FirebaseCallback callback){
+        userReference.child(token).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                callback.onCallback(dataSnapshot.getValue(User.class));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public static void uploadProfilePicture(String userToken, Uri imagePath, final FirebaseCallback callback){
+        profilePictureRef.child(userToken).putFile(imagePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                callback.onCallback(null);
+            }
+        });
+    }
+
+    public static void getProfilePicture(String userToken, final FirebaseCallback callback){
+        profilePictureRef.child(userToken).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                callback.onCallback(uri);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                callback.onCallback(null);
+            }
+        });
+    }
+
+    public static void deleteProfilePicture(String userToken, final FirebaseCallback callback){
+        profilePictureRef.child(userToken).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                callback.onCallback(null);
+            }
+        });
     }
 }
+

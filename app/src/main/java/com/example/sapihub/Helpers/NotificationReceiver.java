@@ -47,6 +47,6 @@ public class NotificationReceiver extends BroadcastReceiver {
         //send notification and add to database
    //     managerCompat.notify(1,notification);
         notificationManager.notify(0,notification);
-        DatabaseHelper.addNotification(Utils.getCurrentUser(context),new com.example.sapihub.Model.Notification(notificationTitle,notificationMessage,notificationDate));
+        DatabaseHelper.addNotification(Utils.getCurrentUserName(context),new com.example.sapihub.Model.Notification(notificationTitle,notificationMessage,notificationDate));
     }
 }

@@ -18,7 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
-import com.example.sapihub.Helpers.Database.FirebaseLoginCallback;
+import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.MoodleAPI;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Token;
@@ -64,6 +64,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         rememberMe = findViewById(R.id.rememberMe);
 
         loadingDialog = new ProgressDialog(this, R.style.ProgressDialog);
+        loadingDialog.setCanceledOnTouchOutside(false);
         loadingDialog.setMessage(getString(R.string.loading));
 
         sharedPreferences = getSharedPreferences("UserData", Context.MODE_PRIVATE);
@@ -86,6 +87,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         editor.putString("username",nameInput.getText().toString());
         editor.putString("password",passwordInput.getText().toString());
         editor.putBoolean("rememberMe",rememberMe.isChecked());
+        editor.putString("token",token);
         editor.apply();
     }
 
@@ -108,12 +110,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 if (response.body().getToken() != null){
                     token = response.body().getToken();
                     loadingDialog.dismiss();
+                    saveUserData();
 
                     //check if user is already stored in database
-                    DatabaseHelper.isUserStored(response.body().getToken(), new FirebaseLoginCallback() {
+                    DatabaseHelper.isUserStored(response.body().getToken(), new FirebaseCallback() {
                         @Override
-                        public void onCallback(boolean firstLogin) {
-                            if (firstLogin){
+                        public void onCallback(Object object) {
+                            if ((Boolean) object){
                                 showAddDataDialog();
                             } else {
                                 Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
@@ -180,7 +183,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void showConfirmSendDialog() {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.addProfileData))
-                .setMessage(getString(R.string.confirmationMessage))
+                .setMessage(getString(R.string.confirmProfileData))
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
@@ -234,7 +237,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View v) {
-        saveUserData();
         logIn();
     }
 }

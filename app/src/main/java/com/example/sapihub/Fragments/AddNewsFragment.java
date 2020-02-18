@@ -87,7 +87,7 @@ public class AddNewsFragment extends Fragment implements View.OnClickListener {
             String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
             if (!image.isEmpty()){
-                DatabaseHelper.uploadImage(image,imagePath);
+                DatabaseHelper.uploadNewsImage(image,imagePath);
                 DatabaseHelper.addNews(new News(newsTitle,date,newsContent,image));
             } else {
                 DatabaseHelper.addNews(new News(newsTitle,date,newsContent,null));

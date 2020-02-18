@@ -56,7 +56,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void getData() {
-        DatabaseHelper.eventsReference.child(Utils.getCurrentUser(getContext())).addValueEventListener(new ValueEventListener() {
+        DatabaseHelper.eventsReference.child(Utils.getCurrentUserName(getContext())).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 eventList.clear();

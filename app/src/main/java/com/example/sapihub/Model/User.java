@@ -8,6 +8,9 @@ public class User {
     private String degree;
     private String studyYear;
 
+    public User() {
+    }
+
     public User(String name, String token) {
         this.name = name;
         this.token = token;

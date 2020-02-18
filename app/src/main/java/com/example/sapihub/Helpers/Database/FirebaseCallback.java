@@ -1,6 +1,7 @@
 package com.example.sapihub.Helpers.Database;
 
 public interface FirebaseCallback {
-    void onCallback();
+    void onCallback(Object object);
 }
+
 
