@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.example.sapihub.Fragments.DeadlinesFragment;
 import com.example.sapihub.Fragments.NewsFragment;
 import com.example.sapihub.R;
 
@@ -22,7 +23,7 @@ public class FragmentLoader extends AppCompatActivity{
         String[] menuItems = this.getResources().getStringArray(R.array.homeMenu);
         String fragment = getIntent().getExtras().getString("fragmentName");
         if (fragment.equals(menuItems[0])){
-            loadFragment(new NewsFragment(),null);
+            loadFragment(new DeadlinesFragment(),null);
         }
 
     }

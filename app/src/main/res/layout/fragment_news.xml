@@ -3,36 +3,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/container"
     tools:context=".Fragments.NewsFragment">
 
-    <TextView
-        android:id="@+id/fragmentTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/lobster"
-        android:textColor="@color/colorGreen"
-        android:layout_margin="25dp"
-        android:textAlignment="viewStart"
-        android:text="@string/news"
-        android:textSize="45sp"/>
-
-    <Button
+    <ImageView
         android:id="@+id/addNews"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/fragmentTitle"
         android:layout_alignParentEnd="true"
         android:layout_margin="10dp"
         android:background="@drawable/button_background"
-        android:padding="10dp"
-        android:text="@string/addNews"
-        android:textColor="@color/colorWhite"
-        android:textSize="12sp" />
+        android:src="@drawable/ic_add_black_24dp"
+        android:padding="10dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/newsList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/addNews"/>
+        android:layout_below="@+id/addNews"
+        android:layout_marginBottom="50dp"/>
 
 </RelativeLayout>

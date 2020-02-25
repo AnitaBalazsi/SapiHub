@@ -2,6 +2,7 @@ package com.example.sapihub.Fragments;
 
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -11,12 +12,15 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageView;
 
+import com.example.sapihub.Activities.AddNewsActivity;
 import com.example.sapihub.Activities.FragmentLoader;
+import com.example.sapihub.Activities.NewsDetailsActivity;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Adapters.NewsListAdapter;
 import com.example.sapihub.Model.News;
@@ -33,7 +37,7 @@ import java.util.ArrayList;
 public class NewsFragment extends Fragment implements View.OnClickListener, NewsListAdapter.ListViewHolder.NewsClickListener {
     private NewsListAdapter adapter;
     private ProgressDialog loadingDialog;
-    private Button addNewsButton;
+    private ImageView addNews;
     private ArrayList<News> newsList = new ArrayList<>();
 
     public NewsFragment() {
@@ -56,9 +60,15 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
         getData();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        adapter.notifyDataSetChanged();
+    }
+
     private void initializeVariables() {
-        addNewsButton = getView().findViewById(R.id.addNews);
-        addNewsButton.setOnClickListener(this);
+        addNews = getView().findViewById(R.id.addNews);
+        addNews.setOnClickListener(this);
 
         RecyclerView listView = getView().findViewById(R.id.newsList);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -94,13 +104,13 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
 
     @Override
     public void onClick(View v) {
-        ((FragmentLoader)getActivity()).replaceFragment(new AddNewsFragment(),null);
+        startActivity(new Intent(getActivity(), AddNewsActivity.class));
     }
 
     @Override
     public void onNewsClick(int position) {
-        Bundle bundle = new Bundle();
-        bundle.putSerializable("selectedNews",newsList.get(position));
-        ((FragmentLoader)getActivity()).replaceFragment(new NewsDetailFragment(),bundle);
+        Intent openDetails = new Intent(getActivity(), NewsDetailsActivity.class);
+        openDetails.putExtra("selectedNews", newsList.get(position));
+        startActivity(openDetails);
     }
 }

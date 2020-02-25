@@ -64,7 +64,7 @@ public class NotificationListAdapter extends RecyclerView.Adapter<NotificationLi
         @Override
         public void onClick(View v) {
             // delete from db
-            DatabaseHelper.deleteNotification(Utils.getCurrentUserName(context),notificationList.get(getAdapterPosition()));
+            DatabaseHelper.deleteNotification(Utils.getCurrentUserToken(context),notificationList.get(getAdapterPosition()));
 
             // delete from list
             notificationList.remove(getAdapterPosition());

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,9 +16,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
+import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.R;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.List;
 
@@ -43,6 +44,7 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
 
     @Override
     public void onBindViewHolder(@NonNull ListViewHolder holder, int position) {
+        holder.imageContainer.removeAllViews();
         holder.title.setText(newsList.get(position).getTitle());
         holder.date.setText(newsList.get(position).getDate());
         String content = newsList.get(position).getContent();
@@ -51,18 +53,28 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
         } else {
             holder.content.setText(content);
         }
-        loadImage(newsList.get(position).getImageName(), holder.image);
+
+        for (String imageName : newsList.get(position).getImages()){
+            loadImage(newsList.get(position),imageName, holder.imageContainer);
+        }
     }
 
-    private void loadImage(String imageName, final ImageView imageView) {
+    private void loadImage(News news, String imageName, final LinearLayout linearLayout) {
+        final ImageView imageView = new ImageView(context);
+        linearLayout.addView(imageView);
+
         //if there is an image attached
         if (imageName != null){
-            DatabaseHelper.newsPictureRef.child(imageName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            DatabaseHelper.getNewsImage(news, imageName, new FirebaseCallback() {
                 @Override
-                public void onSuccess(Uri uri) {
-                    Glide.with(context).load(uri.toString())
-                            .apply(new RequestOptions().override(1000, 600))
-                            .into(imageView);
+                public void onCallback(Object object) {
+                    if (object != null){
+                        Uri uri = (Uri) object;
+                        Glide.with(context).load(uri.toString())
+                                .apply(new RequestOptions().override(500, 300))
+                                .centerCrop()
+                                .into(imageView);
+                    }
                 }
             });
         }
@@ -75,13 +87,13 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
 
     public static class ListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private NewsClickListener newsClickListener;
-        private ImageView image;
+        private LinearLayout imageContainer;
         private TextView title, content, date;
 
         private ListViewHolder(@NonNull View itemView, NewsClickListener newsClickListener) {
             super(itemView);
             this.newsClickListener = newsClickListener;
-            this.image = itemView.findViewById(R.id.image);
+            this.imageContainer = itemView.findViewById(R.id.imageContainer);
             this.title = itemView.findViewById(R.id.title);
             this.content = itemView.findViewById(R.id.content);
             this.date = itemView.findViewById(R.id.date);

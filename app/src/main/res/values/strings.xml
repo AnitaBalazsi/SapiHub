@@ -11,9 +11,12 @@
     <string name="messages">Üzenetek</string>
     <string name="profile">Profil</string>
     <string name="loading">Betöltés…</string>
+    <string name="uploading">Feltöltés…</string>
     <string name="news">Hírek</string>
+    <string name="deadlines">Határidők</string>
     <string-array name="homeMenu">
-        <item>@string/news</item>
+        <item>@string/deadlines</item>
+        <!--
         <item>Órarend</item>
         <item>Elérhetőségek</item>
         <item>Tanévszerkezet</item>
@@ -21,6 +24,7 @@
         <item>Pályázatok</item>
         <item>Rendezvények</item>
         <item>Adminisztráció</item>
+        -->
     </string-array>
     <string name="addNews">Új hír hozzáadása</string>
     <string name="newsTitle">Cím</string>

@@ -1,53 +1,43 @@
 package com.example.sapihub.Model;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class News implements Serializable {
     private String title;
     private String date;
     private String content;
-    private String imageName;
+    private String author;
+    private List<String> images;
 
     public News() {
     }
 
-    public News(String title, String date, String content, String imageName) {
+    public News(String title, String date, String content, String author, List<String> images) {
         this.title = title;
         this.date = date;
         this.content = content;
-        this.imageName = imageName;
+        this.author = author;
+        this.images = images;
     }
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-    }
-
-
 
     public String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public String getDate() {
+        return date;
     }
 
     public String getContent() {
         return content;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public String getAuthor() {
+        return author;
     }
 
-    public String getImageName() {
-        return imageName;
-    }
-
-    public void setImageName(String imageName) {
-        this.imageName = imageName;
+    public List<String> getImages() {
+        return images;
     }
 }

@@ -2,16 +2,17 @@ package com.example.sapihub.Helpers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.view.View;
 
 import com.google.android.material.snackbar.Snackbar;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 public class Utils {
     public static void showSnackbar (View view, String text, int color){
@@ -20,19 +21,17 @@ public class Utils {
         snackbar.show();
     }
 
-    public static String getCurrentUserName(Context context){
-        SharedPreferences sharedPreferences = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);
-        String username = sharedPreferences.getString("username", null);
-        username = username.replace("."," "); //firebase path cant contain '.' character
-        return username;
-    }
-
 
     public static String getCurrentUserToken(Context context){
         SharedPreferences sharedPreferences = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);
         return sharedPreferences.getString("token", null);
     }
 
+    public static String imageNameFromUri(Context context, Uri imageUri) {
+        Cursor cursor = context.getContentResolver().query(imageUri, null, null, null, null);
+        cursor.moveToFirst();
+        return cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+    }
 
 
     public static Date getZeroTimeDate(Date date) {

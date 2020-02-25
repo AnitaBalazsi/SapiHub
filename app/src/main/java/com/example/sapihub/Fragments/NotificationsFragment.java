@@ -67,7 +67,7 @@ public class NotificationsFragment extends Fragment {
     }
 
     private void getData(){
-        DatabaseHelper.notificationsReference.child(Utils.getCurrentUserName(getContext())).addValueEventListener(new ValueEventListener() {
+        DatabaseHelper.notificationsReference.child(Utils.getCurrentUserToken(getContext())).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 notificationList.clear();

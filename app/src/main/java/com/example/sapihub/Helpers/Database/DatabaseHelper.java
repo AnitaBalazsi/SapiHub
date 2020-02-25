@@ -1,5 +1,6 @@
 package com.example.sapihub.Helpers.Database;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
@@ -101,8 +102,13 @@ public class DatabaseHelper {
         notificationsReference.child(username).child(notification.getId()).removeValue();
     }
 
-    public static void uploadNewsImage(String name, Uri imagePath){
-        newsPictureRef.child(name).putFile(imagePath);
+    public static void uploadNewsImage(Context context, String newsName, String newsDate, Uri imagePath, final FirebaseCallback callback){
+        newsPictureRef.child(newsName.concat(newsDate)).child(Utils.imageNameFromUri(context,imagePath)).putFile(imagePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                callback.onCallback(true);
+            }
+        });
     }
 
     public static void getCurrentUserData (String token, final FirebaseCallback callback){
@@ -146,6 +152,20 @@ public class DatabaseHelper {
         profilePictureRef.child(userToken).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
+                callback.onCallback(null);
+            }
+        });
+    }
+
+    public static void getNewsImage(News news, String imageName, final FirebaseCallback callback){
+        newsPictureRef.child(news.getTitle().concat(news.getDate())).child(imageName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                callback.onCallback(uri);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
                 callback.onCallback(null);
             }
         });

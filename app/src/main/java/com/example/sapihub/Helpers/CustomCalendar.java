@@ -127,7 +127,7 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
                     public void onClick(View v) {
                         //add event to database and set alarm for notification
                        Event event = new Event(eventMessage.getText().toString().trim(),Utils.dateToString(dates.get(position)));
-                       DatabaseHelper.addEvent(Utils.getCurrentUserName(context), event);
+                       DatabaseHelper.addEvent(Utils.getCurrentUserToken(context), event);
 
                        Calendar eventDateCalendar = Calendar.getInstance();
 
@@ -184,7 +184,7 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
     }
 
     private void getEventForSpecificDate(final List<Event> eventList, final Date date) {
-        DatabaseHelper.eventsReference.child(Utils.getCurrentUserName(getContext())).addValueEventListener(new ValueEventListener() {
+        DatabaseHelper.eventsReference.child(Utils.getCurrentUserToken(getContext())).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 eventList.clear();
@@ -224,7 +224,7 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
 
     private void getEvents(final FirebaseCallback callback){
         loadingDialog.show();
-        DatabaseHelper.eventsReference.child(Utils.getCurrentUserName(context)).addValueEventListener(new ValueEventListener() {
+        DatabaseHelper.eventsReference.child(Utils.getCurrentUserToken(context)).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 eventsList.clear();

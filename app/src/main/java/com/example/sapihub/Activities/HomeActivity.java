@@ -13,8 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.viewpager.widget.ViewPager;
 
-import com.example.sapihub.Fragments.HomeFragment;
+import com.example.sapihub.Fragments.DeadlinesFragment;
 import com.example.sapihub.Fragments.MessagesFragment;
+import com.example.sapihub.Fragments.NewsFragment;
 import com.example.sapihub.Fragments.NotificationsFragment;
 import com.example.sapihub.Fragments.ProfileFragment;
 import com.example.sapihub.Helpers.Adapters.ViewPagerAdapter;
@@ -69,7 +70,7 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
         viewPager = findViewById(R.id.viewpager);
         adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(new NotificationsFragment());
-        adapter.addFragment(new HomeFragment());
+        adapter.addFragment(new NewsFragment());
         adapter.addFragment(new MessagesFragment());
         adapter.addFragment(new ProfileFragment());
         viewPager.setAdapter(adapter);
