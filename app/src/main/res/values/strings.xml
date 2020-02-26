@@ -72,4 +72,8 @@
     <string name="uploadImage">Kép feltöltése…</string>
     <string name="uploadingImageSuccessful">Sikeres képfeltöltés</string>
     <string name="confirmDeletion">Biztosan törli a képet?</string>
+    <string name="enrollmentDate">Beiratkozás éve</string>
+    <string name="eventTitle">Esemény leírása</string>
+    <string name="seeEvents">Események megtekintése </string>
+    <string name="hideEvents">Események elrejtése</string>
 </resources>

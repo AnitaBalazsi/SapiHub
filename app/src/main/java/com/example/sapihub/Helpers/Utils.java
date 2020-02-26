@@ -1,12 +1,16 @@
 package com.example.sapihub.Helpers;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.view.View;
 
+import com.example.sapihub.Model.Notification;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.text.ParseException;
@@ -21,6 +25,17 @@ public class Utils {
         snackbar.show();
     }
 
+
+    public static void setAlarmForNotification(Context context, Calendar calendar, Notification notification) {
+        Intent intent = new Intent(context, NotificationReceiver.class);
+        intent.putExtra("notificationTitle",notification.getTitle());
+        intent.putExtra("notificationMessage",notification.getMessage());
+        intent.putExtra("notificationDate",notification.getDate());
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,0,intent,0);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),pendingIntent);
+    }
 
     public static String getCurrentUserToken(Context context){
         SharedPreferences sharedPreferences = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);

@@ -69,7 +69,7 @@ public class GridAdapter extends ArrayAdapter {
         //hide days from other months
         int selectedMonth = selectedDate.get(Calendar.MONTH)+1;
         if (displayMonth != selectedMonth){
-            dayCell.setVisibility(View.INVISIBLE);
+            dayCell.setTextColor(ContextCompat.getColor(getContext(),R.color.colorLightGray));
         }
 
         //display events

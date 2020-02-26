@@ -3,6 +3,7 @@ package com.example.sapihub.Helpers.Adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -40,12 +41,14 @@ public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.List
     }
 
     public class ListViewHolder extends RecyclerView.ViewHolder {
+        LinearLayout deleteEvent;
         TextView eventMessage, eventDate;
 
         public ListViewHolder(@NonNull View itemView) {
             super(itemView);
             eventMessage = itemView.findViewById(R.id.message);
             eventDate = itemView.findViewById(R.id.date);
+            deleteEvent = itemView.findViewById(R.id.deleteEvent);
         }
     }
 }

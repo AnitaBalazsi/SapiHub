@@ -7,7 +7,10 @@ import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -97,80 +100,105 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                final View dialogView = inflater.inflate(R.layout.add_event_layout,null);
-                builder.setView(dialogView);
-
-                final TextView selectedDate = dialogView.findViewById(R.id.selectedDate);
-                selectedDate.setText(DateFormat.getDateInstance(DateFormat.SHORT).format(dates.get(position)));
-
-                Button sendButton = dialogView.findViewById(R.id.sendButton);
-                Button cancelButton = dialogView.findViewById(R.id.cancelButton);
-                final EditText eventMessage = dialogView.findViewById(R.id.eventMessage);
-                ImageView timePicker = dialogView.findViewById(R.id.timePicker);
-                final TextView selectedTime = dialogView.findViewById(R.id.selectedTime);
-
-                RecyclerView listView = dialogView.findViewById(R.id.eventList);
-                createEventList(listView, dates.get(position));
-
-                final AlertDialog addEventDialog = builder.create();
-                addEventDialog.show();
-
-                cancelButton.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        addEventDialog.dismiss();
-                    }
-                });
-                sendButton.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        //add event to database and set alarm for notification
-                       Event event = new Event(eventMessage.getText().toString().trim(),Utils.dateToString(dates.get(position)));
-                       DatabaseHelper.addEvent(Utils.getCurrentUserToken(context), event);
-
-                       Calendar eventDateCalendar = Calendar.getInstance();
-
-                       //send notification in event time, one our and one day before
-                        Notification notification = new Notification(getResources().getString(R.string.upcomingEvent),event.getMessage() + " " + event.getDate(),null);
-                       eventDateCalendar.setTime(dates.get(position));
-                       setAlarmForNotification(eventDateCalendar,notification);
-
-                       eventDateCalendar.add(Calendar.DATE,-1);
-                       setAlarmForNotification(eventDateCalendar,notification);
-
-                       eventDateCalendar.add(Calendar.DATE,1);
-                       eventDateCalendar.add(Calendar.HOUR,-1);
-                       setAlarmForNotification(eventDateCalendar,notification);
-
-                       addEventDialog.dismiss();
-                    }
-                });
-
-                timePicker.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        final Calendar calendar = Calendar.getInstance();
-                        final int hours = calendar.get(Calendar.HOUR_OF_DAY);
-                        final int minutes = calendar.get(Calendar.MINUTE);
-                        TimePickerDialog timePickerDialog = new TimePickerDialog(dialogView.getContext(), R.style.Theme_AppCompat_Dialog,
-                                new TimePickerDialog.OnTimeSetListener() {
-                                    @Override
-                                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                                        calendar.set(Calendar.HOUR_OF_DAY,hourOfDay);
-                                        calendar.set(Calendar.MINUTE,minute);
-                                        calendar.setTimeZone(TimeZone.getDefault());
-                                        selectedTime.setText(hourOfDay + ":" + minute);
-
-                                        dates.get(position).setHours(hourOfDay);
-                                        dates.get(position).setMinutes(minute);
-                                    }
-                                    },hours,minutes,false);
-                        timePickerDialog.show();
-                    }
-                });
+                if (view.getVisibility() == View.VISIBLE){
+                    showDialog(position);
+                }
             }
         });
+    }
+
+    private void showDialog(final int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        final View dialogView = ((LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.add_event_layout,null);
+        builder.setView(dialogView);
+
+        final TextView selectedDate = dialogView.findViewById(R.id.selectedDate);
+        Button sendButton = dialogView.findViewById(R.id.sendButton);
+        final EditText eventMessage = dialogView.findViewById(R.id.eventMessage);
+        final ImageView timePicker = dialogView.findViewById(R.id.timePicker);
+        final TextView selectedTime = dialogView.findViewById(R.id.selectedTime);
+        final LinearLayout seeEvents = dialogView.findViewById(R.id.seeEvents);
+
+        selectedDate.setText(DateFormat.getDateInstance(DateFormat.SHORT).format(dates.get(position)));
+        final RecyclerView listView = dialogView.findViewById(R.id.eventList);
+        createEventList(listView, dates.get(position));
+
+        final AlertDialog addEventDialog = builder.create();
+        addEventDialog.show();
+
+        sendButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (eventMessage.getText().toString().isEmpty()){
+                    eventMessage.setError(getResources().getString(R.string.emptyField));
+                    eventMessage.requestFocus();
+                } else {
+                    sendEvent(eventMessage,position);
+                    addEventDialog.dismiss();
+                }
+            }
+        });
+        seeEvents.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ImageView arrowIcon = dialogView.findViewById(R.id.arrowIcon);
+                TextView seeEventsText = dialogView.findViewById(R.id.seeEventsText);
+
+                if (listView.getVisibility() == View.GONE){
+                    listView.setVisibility(View.VISIBLE);
+                    arrowIcon.setRotation(270);
+                    seeEventsText.setText(R.string.hideEvents);
+                } else {
+                    listView.setVisibility(View.GONE);
+                    arrowIcon.setRotation(90);
+                    seeEventsText.setText(R.string.seeEvents);
+                }
+            }
+        });
+        timePicker.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Calendar calendar = Calendar.getInstance();
+                final int hours = calendar.get(Calendar.HOUR_OF_DAY);
+                final int minutes = calendar.get(Calendar.MINUTE);
+                TimePickerDialog timePickerDialog = new TimePickerDialog(dialogView.getContext(), android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
+                        new TimePickerDialog.OnTimeSetListener() {
+                            @Override
+                            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                calendar.set(Calendar.HOUR_OF_DAY,hourOfDay);
+                                calendar.set(Calendar.MINUTE,minute);
+                                calendar.setTimeZone(TimeZone.getDefault());
+                                selectedTime.setText(hourOfDay + ":" + minute);
+
+                                dates.get(position).setHours(hourOfDay);
+                                dates.get(position).setMinutes(minute);
+                            }
+                        },hours,minutes,false);
+                timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                timePickerDialog.show();
+            }
+        });
+    }
+
+    private void sendEvent(EditText eventMessage, int position) {
+        Event event = new Event(eventMessage.getText().toString().trim(),Utils.dateToString(dates.get(position)));
+        DatabaseHelper.addEvent(Utils.getCurrentUserToken(context), event);
+
+        Calendar eventDateCalendar = Calendar.getInstance();
+        //send notification in event time, one our and one day before
+
+        Notification notification = new Notification(getResources().getString(R.string.upcomingEvent),event.getMessage() + " " + event.getDate(),null);
+        notification.setDate(Utils.dateToString(eventDateCalendar.getTime()));
+
+        eventDateCalendar.setTime(dates.get(position));
+        Utils.setAlarmForNotification(context,eventDateCalendar,notification);
+
+        eventDateCalendar.add(Calendar.DATE,-1);
+        Utils.setAlarmForNotification(context,eventDateCalendar,notification);
+
+        eventDateCalendar.add(Calendar.DATE,1);
+        eventDateCalendar.add(Calendar.HOUR,-1);
+        Utils.setAlarmForNotification(context,eventDateCalendar,notification);
     }
 
     private void createEventList(RecyclerView listView, Date date) {
@@ -188,11 +216,11 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 eventList.clear();
-                for (DataSnapshot eventData : dataSnapshot.getChildren()){
+                for (DataSnapshot eventData : dataSnapshot.getChildren()) {
                     Event event = eventData.getValue(Event.class);
                     try {
                         Date eventDate = Utils.stringToDate(event.getDate());
-                        if (Utils.getZeroTimeDate(eventDate).equals(date)){
+                        if (Utils.getZeroTimeDate(eventDate).equals(date)) {
                             eventList.add(event);
                         }
                     } catch (ParseException e) {
@@ -206,20 +234,6 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
 
             }
         });
-    }
-
-    private void setAlarmForNotification(Calendar calendar, Notification notification) {
-        notification.setDate(Utils.dateToString(calendar.getTime()));
-
-        Intent intent = new Intent(context.getApplicationContext(), NotificationReceiver.class);
-        intent.putExtra("notificationTitle",notification.getTitle());
-        intent.putExtra("notificationMessage",notification.getMessage());
-        intent.putExtra("notificationDate",notification.getDate());
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,0,intent,0);
-        AlarmManager alarmManager = (AlarmManager) context.getApplicationContext().getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),pendingIntent);
-
     }
 
     private void getEvents(final FirebaseCallback callback){
