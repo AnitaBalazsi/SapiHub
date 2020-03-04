@@ -6,9 +6,8 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Helpers.Utils;
+import com.example.sapihub.Model.Comment;
 import com.example.sapihub.Model.Event;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.Model.Notification;
@@ -24,11 +23,16 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DatabaseHelper {
     public static DatabaseReference userReference = FirebaseDatabase.getInstance().getReference("Users");
     public static DatabaseReference newsReference = FirebaseDatabase.getInstance().getReference("News");
     public static DatabaseReference eventsReference = FirebaseDatabase.getInstance().getReference("Events");
+    public static DatabaseReference savedPostsReference = FirebaseDatabase.getInstance().getReference("Saved Posts");
     public static DatabaseReference notificationsReference = FirebaseDatabase.getInstance().getReference("Notifications");
+    public static DatabaseReference commentsReference = FirebaseDatabase.getInstance().getReference("Comments");
     public static StorageReference profilePictureRef = FirebaseStorage.getInstance().getReference("Profile pictures");
     public static StorageReference newsPictureRef = FirebaseStorage.getInstance().getReference("News pictures");
 
@@ -111,7 +115,7 @@ public class DatabaseHelper {
         });
     }
 
-    public static void getCurrentUserData (String token, final FirebaseCallback callback){
+    public static void getUserData(String token, final FirebaseCallback callback){
         userReference.child(token).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -167,6 +171,109 @@ public class DatabaseHelper {
             @Override
             public void onFailure(@NonNull Exception e) {
                 callback.onCallback(null);
+            }
+        });
+    }
+
+    public static void savePost (String userToken, String newsKey, String title, final FirebaseCallback callback){
+        savedPostsReference.child(userToken).child(newsKey).setValue(title).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                callback.onCallback(true);
+            }
+        });
+    }
+
+    public static void getNewsKey(final News news, final FirebaseCallback callback){
+        newsReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot newsData : dataSnapshot.getChildren()){
+                   if (newsData.getValue(News.class).equals(news)) {
+                       callback.onCallback(newsData.getKey());
+                   }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public static void isSaved(String userToken, final String newsKey, final FirebaseCallback callback){
+        savedPostsReference.child(userToken).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChild(newsKey)){
+                    callback.onCallback(true);
+                } else {
+                    callback.onCallback(false);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public static void deleteSavedPost(String userToken, String newsKey, final FirebaseCallback callback){
+        savedPostsReference.child(userToken).child(newsKey).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                callback.onCallback(true);
+            }
+        });
+    }
+
+    public static void deleteNews(final News news, final FirebaseCallback callback){
+        newsReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot newsData : dataSnapshot.getChildren()){
+                    if (newsData.getValue(News.class).equals(news)){
+                        newsReference.child(newsData.getKey()).removeValue();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+        for (String imageUrl : news.getImages()){
+            newsPictureRef.child(news.getTitle().concat(news.getDate())).child(imageUrl).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    callback.onCallback(true);
+                }
+            });
+        }
+    }
+
+    public static void addComment(String newsKey, Comment comment){
+        commentsReference.child(newsKey).push().setValue(comment);
+    }
+
+    public static void getComments(String newsKey, final FirebaseCallback callback){
+        final List<Comment> commentList = new ArrayList<>();
+        commentsReference.child(newsKey).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot commentData : dataSnapshot.getChildren()){
+                    commentList.add(commentData.getValue(Comment.class));
+                }
+                callback.onCallback(commentList);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
             }
         });
     }

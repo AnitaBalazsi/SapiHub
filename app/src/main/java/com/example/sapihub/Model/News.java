@@ -1,5 +1,9 @@
 package com.example.sapihub.Model;
 
+import android.util.Log;
+
+import androidx.annotation.Nullable;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -39,5 +43,18 @@ public class News implements Serializable {
 
     public List<String> getImages() {
         return images;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        News news = (News) obj;
+        if (this.getClass() != obj.getClass()) return false;
+        if (this.getAuthor().equals(news.getAuthor()) &&
+                this.getTitle().equals(news.getTitle()) &&
+                this.getDate().equals(news.getDate())){
+            return true;
+        } else {
+            return false;
+        }
     }
 }

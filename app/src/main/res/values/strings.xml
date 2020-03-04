@@ -71,9 +71,19 @@
     <string name="selectPicture">"Kép kiválasztása"</string>
     <string name="uploadImage">Kép feltöltése…</string>
     <string name="uploadingImageSuccessful">Sikeres képfeltöltés</string>
-    <string name="confirmDeletion">Biztosan törli a képet?</string>
+    <string name="confirmImageDeletion">Biztosan törli a képet?</string>
     <string name="enrollmentDate">Beiratkozás éve</string>
     <string name="eventTitle">Esemény leírása</string>
     <string name="seeEvents">Események megtekintése </string>
     <string name="hideEvents">Események elrejtése</string>
+    <string name="myPosts">Saját bejegyzések</string>
+    <string name="savedPosts">Mentett bejegyzések</string>
+    <string name="deletePost">Bejegyzés törlése</string>
+    <string name="editPost">Bejegyzés módosítása</string>
+    <string name="postSaved">Bejegyzés mentve</string>
+    <string name="postRemovedFromSaved">Bejegyzés törölve</string>
+    <string name="deleteNews">Bejegyzés törlése</string>
+    <string name="confirmDeleteNews">Biztosan törli a bejegyzést?</string>
+    <string name="viewComments">Hozzászólások megtekintése</string>
+    <string name="hideComments">Hozzászólások elrejtése</string>
 </resources>

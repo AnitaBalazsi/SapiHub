@@ -13,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.viewpager.widget.ViewPager;
 
-import com.example.sapihub.Fragments.DeadlinesFragment;
 import com.example.sapihub.Fragments.MessagesFragment;
 import com.example.sapihub.Fragments.NewsFragment;
 import com.example.sapihub.Fragments.NotificationsFragment;
@@ -98,6 +97,10 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
         return false;
     }
 
+    @Override
+    public void onBackPressed() {
+
+    }
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {

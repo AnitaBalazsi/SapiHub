@@ -1,64 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorGreen"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".Activities.LoginActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="60dp"
-        android:fontFamily="@font/lobster"
-        android:textColor="@color/colorWhite"
-        android:text="@string/app_name"
-        android:textSize="100sp" />
-
-    <LinearLayout
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/colorWhite"
-        android:padding="20dp"
-        android:layout_marginTop="220dp"
-        android:orientation="vertical">
-        <EditText
-            android:id="@+id/name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/moodleName"
-            android:inputType="text"
-            android:layout_margin="10dp"
-            android:padding="10dp"/>
+        android:layout_height="match_parent"
+        android:src="@drawable/login_background"
+        android:scaleType="centerCrop"/>
 
-        <EditText
-            android:id="@+id/password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:hint="@string/moodlePassword"
-            android:inputType="numberPassword"
-            android:padding="10dp"/>
-
-        <Button
-            android:id="@+id/login"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:layout_margin="20dp"
-            android:background="@drawable/button_background"
-            android:textColor="@color/colorWhite"
-            android:text="@string/login" />
-
-        <CheckBox
-            android:id="@+id/rememberMe"
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="50dp"
+        android:padding="20dp">
+        <TextView
+            android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:layout_gravity="center"
-            android:buttonTint="@color/colorGreen"
-            android:text="@string/rememberMe" />
-    </LinearLayout>
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="60dp"
+            android:padding="10dp"
+            android:fontFamily="@font/lobster"
+            android:textColor="@color/colorGreen"
+            android:text="@string/app_name"
+            android:textSize="100sp"
+            android:shadowColor="@color/colorBlack"
+            android:shadowDx="1.5"
+            android:shadowDy="1.3"
+            android:shadowRadius="1.6"
+            />
 
-</RelativeLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/title"
+
+            android:padding="20dp"
+            android:orientation="vertical">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/moodleName"
+                android:inputType="text"
+                style="@style/LoginEditText"
+                android:layout_margin="15dp"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:hintEnabled="false"
+                app:passwordToggleEnabled="true">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="15dp"
+                    android:hint="@string/moodlePassword"
+                    style="@style/LoginEditText"
+                    android:inputType="numberPassword"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="15dp"
+                android:text="@string/login" />
+
+            <CheckBox
+                android:id="@+id/rememberMe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_gravity="center"
+                android:text="@string/rememberMe" />
+        </LinearLayout>
+    </RelativeLayout>
+
+</FrameLayout>

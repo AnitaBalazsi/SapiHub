@@ -46,7 +46,6 @@ public class ImageListAdapter extends RecyclerView.Adapter<ImageListAdapter.List
         } catch (IOException e) {
             e.printStackTrace();
         }
-        holder.imageName.setText(Utils.imageNameFromUri(context,images.get(position)));
     }
 
     @Override
@@ -56,7 +55,6 @@ public class ImageListAdapter extends RecyclerView.Adapter<ImageListAdapter.List
 
     public static class ListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private ImageView image, deleteImage;
-        private TextView imageName;
         private ImageClickListener imageClickListener;
 
         public ListViewHolder(@NonNull View itemView, ImageClickListener imageClickListener) {
@@ -64,7 +62,6 @@ public class ImageListAdapter extends RecyclerView.Adapter<ImageListAdapter.List
 
             this.imageClickListener = imageClickListener;
             image = itemView.findViewById(R.id.image);
-            imageName = itemView.findViewById(R.id.imageName);
             deleteImage = itemView.findViewById(R.id.deleteImage);
             deleteImage.setOnClickListener(this);
         }

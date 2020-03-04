@@ -181,7 +181,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void showConfirmSendDialog() {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.AlertDialogTheme)
                 .setTitle(getString(R.string.addProfileData))
                 .setMessage(getString(R.string.confirmProfileData))
                 .setIcon(android.R.drawable.ic_dialog_alert)

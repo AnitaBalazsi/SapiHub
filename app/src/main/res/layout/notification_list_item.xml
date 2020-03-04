@@ -43,7 +43,7 @@
              android:layout_height="wrap_content"
              android:layout_weight="0.5"
              android:layout_gravity="center"
-            android:src="@drawable/ic_delete_black_24dp"/>
+            android:src="@drawable/ic_delete"/>
       </LinearLayout>
    </LinearLayout>
 

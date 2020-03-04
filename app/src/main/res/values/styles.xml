@@ -2,17 +2,44 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">@color/colorGreen</item>
         <item name="colorPrimaryDark">@color/colorGreen</item>
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
         <item name="android:fontFamily">sans-serif-light</item>
         <item name="android:textSize">13sp</item>
+        <item name="buttonStyle">@style/Button</item>
+        <item name="editTextStyle">@style/EditText</item>
+        <item name="android:buttonTint">@color/colorGreen</item>
+        <item name="alertDialogStyle">@style/AlertDialogTheme</item>
     </style>
 
     <style name="ProgressDialog" parent="Theme.AppCompat.Dialog">
         <item name="colorAccent">@color/colorGreen</item>
         <item name="android:textColor">@color/colorBlack</item>
     </style>
+
+    <style name="LoginEditText" parent="Widget.AppCompat.EditText">
+        <item name="android:textColor">@color/colorWhite</item>
+        <item name="android:textColorHint">@color/colorWhite</item>
+        <item name="android:background">@drawable/login_edittext</item>
+        <item name="android:padding">15dp</item>
+    </style>
+
+    <style name="EditText" parent="Widget.AppCompat.EditText">
+        <item name="android:textColor">@color/colorBlack</item>
+        <item name="android:textColorHint">@color/colorBlack</item>
+        <item name="android:padding">10dp</item>
+    </style>
+
+    <style name="Button" parent="Widget.AppCompat.Button">
+        <item name="android:padding">5dp</item>
+        <item name="android:background">@drawable/button_background</item>
+        <item name="android:textColor">@color/colorWhite</item>
+    </style>
+
+    <style name="AlertDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:textColor">@color/colorBlack</item>
+        <item name="android:textColorPrimary">@color/colorBlack</item>
+        <item name="colorAccent">@color/colorBlack</item>
+    </style>
+
 
 </resources>

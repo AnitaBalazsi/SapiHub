@@ -1,63 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".Activities.AddNewsActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/addNews"
-        android:fontFamily="@font/lobster"
-        android:textColor="@color/colorGreen"
-        android:layout_margin="20dp"
-        android:textAlignment="center"
-        android:textSize="45sp"/>
-
-    <EditText
-        android:id="@+id/newsTitle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/newsTitle"
-        android:layout_margin="15dp"
-        android:inputType="text" />
+        android:orientation="vertical"
+        android:paddingBottom="150dp"
+        android:background="@color/colorGreen">
 
-    <EditText
-        android:id="@+id/newsContent"
+        <ImageView
+            android:id="@+id/previousPage"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@drawable/ic_navigate_next_white_24dp"
+            android:layout_margin="5dp"
+            android:rotation="180"/>
+
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginEnd="15dp"
-        android:gravity="top"
-        android:inputType="textMultiLine"/>
-
-    <Button
-            android:id="@+id/addImageButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/button_background"
-            android:padding="10dp"
-            android:layout_marginStart="20dp"
-            android:textColor="@color/colorWhite"
-            android:text="@string/addImage"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/imageList"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="50dp">
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="20dp" />
+            android:layout_margin="10dp">
 
-    <Button
-        android:id="@+id/sendButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/button_background"
-        android:layout_gravity="right"
-        android:layout_margin="25dp"
-        android:padding="10dp"
-        android:textColor="@color/colorWhite"
-        android:text="@string/send"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <EditText
+                    android:id="@+id/newsTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/newsTitle"
+                    android:layout_marginStart="15dp"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginEnd="15dp"
+                    android:layout_weight="1"
+                    style="@style/EditText"
+                    android:inputType="text" />
 
-</LinearLayout>
+                <EditText
+                    android:id="@+id/newsContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_margin="15dp"
+                    android:gravity="top"
+                    android:inputType="textMultiLine"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="15dp"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/addImage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_add_a_photo_black_24dp"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="15dp"/>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/imageList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="20dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                        <!-- todo visibility -->
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <Button
+            android:id="@+id/sendButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:text="@string/send"/>
+    </LinearLayout>
+</FrameLayout>

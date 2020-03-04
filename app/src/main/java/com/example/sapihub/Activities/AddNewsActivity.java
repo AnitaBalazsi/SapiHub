@@ -6,14 +6,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.OpenableColumns;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import com.example.sapihub.Helpers.Adapters.ImageListAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
@@ -30,7 +29,8 @@ import java.util.Locale;
 
 public class AddNewsActivity extends AppCompatActivity implements View.OnClickListener, ImageListAdapter.ListViewHolder.ImageClickListener {
     private EditText title, content;
-    private Button addImageButton, sendButton;
+    private Button sendButton;
+    private ImageView addImage, backImage;
     private List<Uri> imageList = new ArrayList<>();
     private RecyclerView imageListView;
     private ImageListAdapter imageListAdapter;
@@ -46,15 +46,18 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
     private void initializeVariables() {
         title = findViewById(R.id.newsTitle);
         content = findViewById(R.id.newsContent);
-        addImageButton = findViewById(R.id.addImageButton);
+        addImage = findViewById(R.id.addImage);
+        backImage = findViewById(R.id.previousPage);
         sendButton = findViewById(R.id.sendButton);
         imageListView = findViewById(R.id.imageList);
         imageListView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL,false));
+        imageListView.setHasFixedSize(true);
 
         imageListAdapter = new ImageListAdapter(imageList, this, this);
         imageListView.setAdapter(imageListAdapter);
 
-        addImageButton.setOnClickListener(this);
+        addImage.setOnClickListener(this);
+        backImage.setOnClickListener(this);
         sendButton.setOnClickListener(this);
 
         loadingDialog = new ProgressDialog(this, R.style.ProgressDialog);
@@ -65,11 +68,14 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     public void onClick(View v) {
         switch (v.getId()){
-            case R.id.addImageButton:
+            case R.id.addImage:
                 getImageFromGallery();
                 break;
             case R.id.sendButton:
                 sendData();
+                break;
+            case R.id.previousPage:
+                finish();
                 break;
         }
     }
@@ -79,18 +85,20 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
             loadingDialog.show();
             String newsTitle = title.getText().toString().trim();
             String newsContent = content.getText().toString().trim();
-            String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+            String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
             if (imageListAdapter.getItemCount() > 0){
                 List<String> images = new ArrayList<>();
                 DatabaseHelper.addNews(new News(newsTitle, date, newsContent, Utils.getCurrentUserToken(this), images));
-                for (Uri imageUri : imageList){
+                for (int i = 0; i < imageList.size(); i++){
+                    Uri imageUri = imageList.get(i);
                     images.add(Utils.imageNameFromUri(this,imageUri));
+                    final int finalI = i;
                     DatabaseHelper.uploadNewsImage(this, newsTitle, date, imageUri, new FirebaseCallback() {
                         @Override
                         public void onCallback(Object object) {
-                            if ((Boolean) object){
-                                loadingDialog.dismiss();
+                            if ((Boolean) object && finalI == imageList.size() - 1){
+                                loadingDialog.dismiss(); //when all the images are uploaded go to previous page
                                 finish();
                             }
                         }
