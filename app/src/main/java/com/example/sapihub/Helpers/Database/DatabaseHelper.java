@@ -260,15 +260,16 @@ public class DatabaseHelper {
         commentsReference.child(newsKey).push().setValue(comment);
     }
 
-    public static void getComments(String newsKey, final FirebaseCallback callback){
-        final List<Comment> commentList = new ArrayList<>();
+    public static void deleteComment(final String newsKey, final Comment comment, final FirebaseCallback callback){
         commentsReference.child(newsKey).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot commentData : dataSnapshot.getChildren()){
-                    commentList.add(commentData.getValue(Comment.class));
+                    if (commentData.getValue(Comment.class).equals(comment)){
+                        commentsReference.child(newsKey).child(commentData.getKey()).removeValue();
+                        callback.onCallback(null);
+                    }
                 }
-                callback.onCallback(commentList);
             }
 
             @Override

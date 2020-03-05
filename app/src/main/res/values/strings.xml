@@ -86,4 +86,9 @@
     <string name="confirmDeleteNews">Biztosan törli a bejegyzést?</string>
     <string name="viewComments">Hozzászólások megtekintése</string>
     <string name="hideComments">Hozzászólások elrejtése</string>
+    <string name="writeComments">Hozzászólás írása…</string>
+    <string name="deleteComment">Hozzászólás törlése</string>
+    <string name="editComment">Hozzászólás szerkesztése</string>
+    <string name="confirmDeleteComment">Biztosan törli a hozzászólást?</string>
+    <string name="search">Keresés</string>
 </resources>

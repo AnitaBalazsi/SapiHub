@@ -22,6 +22,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.example.sapihub.Activities.AddNewsActivity;
@@ -42,14 +43,19 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NewsFragment extends Fragment implements View.OnClickListener, NewsListAdapter.ListViewHolder.NewsClickListener {
+public class NewsFragment extends Fragment implements View.OnClickListener, NewsListAdapter.ListViewHolder.NewsClickListener, SearchView.OnQueryTextListener {
     private NewsListAdapter adapter;
     private ProgressDialog loadingDialog;
     private ImageView addNews;
     private ArrayList<News> newsList = new ArrayList<>();
+    private SearchView searchView;
 
     public NewsFragment() {
         // Required empty public constructor
@@ -93,6 +99,9 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
 
         loadingDialog = new ProgressDialog(getContext(), R.style.ProgressDialog);
         loadingDialog.setMessage(getString(R.string.loading));
+
+        searchView = getView().findViewById(R.id.searchView);
+        searchView.setOnQueryTextListener(this);
     }
 
     private void getData(){
@@ -142,7 +151,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
     @Override
     public void onMoreOptionsClick(View itemView, final int position) {
         PopupMenu popupMenu = new PopupMenu(getContext(), itemView.findViewById(R.id.moreImage));
-        getActivity().getMenuInflater().inflate(R.menu.options_menu, popupMenu.getMenu());
+        getActivity().getMenuInflater().inflate(R.menu.post_options_menu, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -218,7 +227,8 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
     public void onSendComment(View itemView, int position, String tag) {
         final EditText commentInput = itemView.findViewById(R.id.commentInput);
         if (commentInput.getText().toString().isEmpty()){
-            //error
+            commentInput.setError(getString(R.string.emptyField));
+            commentInput.requestFocus();
         } else {
             String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
             final Comment comment = new Comment(Utils.getCurrentUserToken(getContext()),date,commentInput.getText().toString().trim());
@@ -254,5 +264,57 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
                 }
             }
         });
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(final String query) {
+        if (!query.isEmpty()){
+            newsList.clear();
+            DatabaseHelper.newsReference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    for (DataSnapshot newsData : dataSnapshot.getChildren()){
+                        News news = newsData.getValue(News.class);
+                        if (news.getTitle().contains(query) || news.getContent().contains(query)){
+                            newsList.add(news);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextChange(final String newText) {
+        if (newText.length() > 0){
+            newsList.clear();
+            DatabaseHelper.newsReference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    for (DataSnapshot newsData : dataSnapshot.getChildren()){
+                        News news = newsData.getValue(News.class);
+                        if (news.getTitle().contains(newText) || news.getContent().contains(newText)){
+                            newsList.add(news);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        } else {
+            getData();
+        }
+        return true;
     }
 }

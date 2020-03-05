@@ -15,6 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
+            android:layout_weight="1"
             android:orientation="vertical">
             <TextView
                 android:id="@+id/authorName"
@@ -30,6 +31,15 @@
                 android:layout_marginStart="5dp"
                 android:textSize="12sp"/>
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/moreOptions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_margin="10dp"
+            android:visibility="gone"
+            android:src="@drawable/ic_more_vert" />
     </LinearLayout>
     <TextView
         android:id="@+id/content"
