@@ -4,6 +4,8 @@
     package="com.example.sapihub">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -13,11 +15,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".Activities.NewsDetailsActivity"></activity>
+        <activity android:name=".Activities.ChatActivity"></activity>
+        <activity android:name=".Activities.UserProfileActivity" />
+        <activity android:name=".Activities.NewsDetailsActivity" />
         <activity android:name=".Activities.AddNewsActivity" />
-        <activity android:name=".Activities.FragmentLoader" />
+        <activity
+            android:name=".Activities.FragmentLoader"
+            android:windowSoftInputMode="stateVisible|adjustPan" />
         <activity android:name=".Activities.HomeActivity" />
-        <activity android:name=".Activities.LoginActivity" />
+        <activity
+            android:name=".Activities.LoginActivity"
+            android:windowSoftInputMode="stateVisible|adjustPan" />
         <activity android:name=".Activities.SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,10 +34,11 @@
             </intent-filter>
         </activity>
 
-        <receiver
-            android:name=".Helpers.NotificationReceiver"
-            android:enabled="true">
-        </receiver>
+        <service android:name=".Helpers.FirebaseService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <meta-data
             android:name="preloaded_fonts"

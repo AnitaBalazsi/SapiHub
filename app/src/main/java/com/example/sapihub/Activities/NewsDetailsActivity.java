@@ -11,13 +11,13 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -41,14 +41,14 @@ import java.util.Locale;
 
 public class NewsDetailsActivity extends AppCompatActivity implements View.OnClickListener, CommentListAdapter.CommentClickListener {
     private News selectedNews;
-    private TextView commentsText;
-    private ImageView arrowImage, sendComment;
+    private TextView commentsText, commentsCounter;
+    private ImageView sendComment;
     private EditText commentInput;
-    private LinearLayout imageContainer, commentLayout;
-    private RelativeLayout viewComments;
+    private LinearLayout imageContainer, commentLayout, viewComments;
     private RecyclerView commentView;
     private CommentListAdapter adapter;
     private List<Comment> commentList = new ArrayList<>();
+    private String newsKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,10 +59,22 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
 
         loadData();
         loadImages();
-        loadComments();
+        loadComments(new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                int counter = 0;
+                for (Comment comment : commentList){
+                    counter++;
+                    if (comment.getReplies() != null){
+                        counter += comment.getReplies().size();
+                    }
+                }
+                commentsCounter.setText(String.valueOf(counter));
+            }
+        });
     }
 
-    private void loadComments() {
+    private void loadComments(final FirebaseCallback callback) {
         DatabaseHelper.getNewsKey(selectedNews, new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
@@ -75,6 +87,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
                             commentList.add(commentData.getValue(Comment.class));
                             adapter.notifyDataSetChanged();
                         }
+                        callback.onCallback(null);
                     }
 
                     @Override
@@ -115,7 +128,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
 
         commentLayout = findViewById(R.id.commentsLayout);
         commentsText = findViewById(R.id.commentsText);
-        arrowImage = findViewById(R.id.arrowImage);
+        commentsCounter = findViewById(R.id.commentCounter);
         viewComments = findViewById(R.id.viewComments);
         viewComments.setOnClickListener(this);
         commentView = findViewById(R.id.commentList);
@@ -131,6 +144,12 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
         adapter = new CommentListAdapter(this,commentList,this);
         commentView.setAdapter(adapter);
 
+        DatabaseHelper.getNewsKey(selectedNews, new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                newsKey = (String) object;
+            }
+        });
     }
 
     private void showImageDialog(Uri imageUri) {
@@ -173,11 +192,9 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
                 if (commentLayout.getVisibility() == View.VISIBLE){
                     commentLayout.setVisibility(View.GONE);
                     commentsText.setText(getResources().getString(R.string.viewComments));
-                    arrowImage.setRotation(0);
                 } else {
                     commentLayout.setVisibility(View.VISIBLE);
                     commentsText.setText(getResources().getString(R.string.hideComments));
-                    arrowImage.setRotation(180);
                 }
                 break;
             case R.id.sendCommentButton:
@@ -223,6 +240,44 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
         popupMenu.show();
     }
 
+    @Override
+    public void onWriteReplyClick(View itemView, int position) {
+        LinearLayout commentLayout = itemView.findViewById(R.id.commentLayout);
+        EditText commentInput = itemView.findViewById(R.id.commentInput);
+        if (commentLayout.getVisibility() == View.VISIBLE){
+            commentLayout.setVisibility(View.GONE);
+        } else {
+            commentLayout.setVisibility(View.VISIBLE);
+            commentInput.requestFocus();
+        }
+    }
+
+    @Override
+    public void onSendReplyClick(View itemView, final int position) {
+        final EditText replyInput = itemView.findViewById(R.id.commentInput);
+        if (replyInput.getText().toString().isEmpty()){
+            replyInput.setError(getString(R.string.emptyField));
+            replyInput.requestFocus();
+        } else {
+            sendReply(position,replyInput.getText().toString().trim());
+            replyInput.setText(null);
+        }
+    }
+
+    private void sendReply(final int position, final String content) {
+        DatabaseHelper.getCommentKey(newsKey,commentList.get(position), new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                String commentKey = (String) object;
+                String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+                final Comment reply = new Comment(Utils.getCurrentUserToken(getBaseContext()),date,content);
+
+                commentList.get(position).addReply(reply);
+                DatabaseHelper.addReply(newsKey,commentKey,commentList.get(position).getReplies());
+            }
+        });
+    }
+
     private void showConfirmDeleteDialog(final int position) {
         new AlertDialog.Builder(this,R.style.AlertDialogTheme)
                 .setTitle(getString(R.string.deleteComment))
@@ -237,18 +292,11 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void deleteComment(final Comment comment) {
-        DatabaseHelper.getNewsKey(selectedNews, new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                String newsKey = (String) object;
-                DatabaseHelper.deleteComment(newsKey, comment, new FirebaseCallback() {
+        DatabaseHelper.deleteComment(newsKey, comment, new FirebaseCallback() {
                     @Override
                     public void onCallback(Object object) {
                         commentList.remove(comment);
-                        adapter.notifyDataSetChanged();
-                    }
-                });
-            }
+                        adapter.notifyDataSetChanged(); }
         });
     }
 }

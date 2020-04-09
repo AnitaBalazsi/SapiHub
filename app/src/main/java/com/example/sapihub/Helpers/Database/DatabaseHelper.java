@@ -7,8 +7,10 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.example.sapihub.Helpers.Utils;
+import com.example.sapihub.Model.Chat;
 import com.example.sapihub.Model.Comment;
 import com.example.sapihub.Model.Event;
+import com.example.sapihub.Model.Message;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.Model.Notification;
 import com.example.sapihub.Model.User;
@@ -23,7 +25,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseHelper {
@@ -35,6 +36,8 @@ public class DatabaseHelper {
     public static DatabaseReference commentsReference = FirebaseDatabase.getInstance().getReference("Comments");
     public static StorageReference profilePictureRef = FirebaseStorage.getInstance().getReference("Profile pictures");
     public static StorageReference newsPictureRef = FirebaseStorage.getInstance().getReference("News pictures");
+    public static StorageReference chatPictureRef = FirebaseStorage.getInstance().getReference("Chat pictures");
+    public static DatabaseReference chatReference = FirebaseDatabase.getInstance().getReference("ChatRooms");
 
     public static void isUserStored(final String token, final FirebaseCallback callback){
         userReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -116,7 +119,7 @@ public class DatabaseHelper {
     }
 
     public static void getUserData(String token, final FirebaseCallback callback){
-        userReference.child(token).addListenerForSingleValueEvent(new ValueEventListener() {
+        userReference.child(token).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 callback.onCallback(dataSnapshot.getValue(User.class));
@@ -270,6 +273,81 @@ public class DatabaseHelper {
                         callback.onCallback(null);
                     }
                 }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public static void addReply(String newsKey, String commentKey, List<Comment> replies){
+        commentsReference.child(newsKey).child(commentKey).child("replies").setValue(replies);
+    }
+
+    public static void getCommentKey(String newsKey, final Comment comment, final FirebaseCallback callback){
+        commentsReference.child(newsKey).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot commentData : dataSnapshot.getChildren()){
+                    Comment data = commentData.getValue(Comment.class);
+                    if (data.equals(comment)){
+                        callback.onCallback(commentData.getKey());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public static void addMessage(String chatId,List<Message> messages){
+        chatReference.child(chatId).child("messages").setValue(messages);
+    }
+
+    public static void addChatImage(final String id, Uri imagePath, final FirebaseCallback callback){
+        chatPictureRef.child(id).putFile(imagePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                chatPictureRef.child(id).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        callback.onCallback(uri);
+                    }
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                callback.onCallback(null);
+            }
+        });
+    }
+
+    public static void changeTypingTo(String userId, String typingTo){
+        userReference.child(userId).child("typingTo").setValue(typingTo);
+    }
+
+    public static void createChat(final Chat chat, final FirebaseCallback callback){
+        final String[] key = new String[1];
+        chatReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot chatData : dataSnapshot.getChildren()) {
+                    if (chat.equals(chatData.getValue(Chat.class))) {
+                        key[0] = chatData.getKey();
+                    }
+                }
+
+                if (key[0] == null){
+                    key[0] = chatReference.push().getKey();
+                    chatReference.child(key[0]).setValue(chat);
+                }
+                callback.onCallback(key[0]);
             }
 
             @Override

@@ -7,6 +7,7 @@ public class User {
     private String department;
     private String degree;
     private String studyYear;
+    private String typingTo;
 
     public User() {
     }
@@ -16,52 +17,51 @@ public class User {
         this.token = token;
     }
 
-    public String getOccupation() {
-        return occupation;
-    }
-
-    public void setOccupation(String occupation) {
-        this.occupation = occupation;
-    }
-
     public String getName() {
         return name;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
 
     public String getToken() {
         return token;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public String getOccupation() {
+        return occupation;
     }
 
     public String getDepartment() {
         return department;
     }
 
-    public void setDepartment(String department) {
-        this.department = department;
-    }
-
     public String getDegree() {
         return degree;
-    }
-
-    public void setDegree(String degree) {
-        this.degree = degree;
     }
 
     public String getStudyYear() {
         return studyYear;
     }
 
+    public String getTypingTo() {
+        return typingTo;
+    }
+
+    public void setOccupation(String occupation) {
+        this.occupation = occupation;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public void setDegree(String degree) {
+        this.degree = degree;
+    }
+
     public void setStudyYear(String studyYear) {
         this.studyYear = studyYear;
+    }
+
+    public void setTypingTo(String typingTo) {
+        this.typingTo = typingTo;
     }
 }

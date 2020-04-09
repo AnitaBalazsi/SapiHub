@@ -6,10 +6,8 @@ import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.example.sapihub.Fragments.DeadlinesFragment;
-import com.example.sapihub.Fragments.NewsFragment;
 import com.example.sapihub.R;
 
 public class FragmentLoader extends AppCompatActivity{
@@ -25,7 +23,6 @@ public class FragmentLoader extends AppCompatActivity{
         if (fragment.equals(menuItems[0])){
             loadFragment(new DeadlinesFragment(),null);
         }
-
     }
 
     @Override

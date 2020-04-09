@@ -23,7 +23,7 @@ public class NotificationReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        String notificationTitle = intent.getStringExtra("notificationTitle");
+       /* String notificationTitle = intent.getStringExtra("notificationTitle");
         String notificationMessage = intent.getStringExtra("notificationMessage");
         String notificationDate = intent.getStringExtra("notificationDate");
 
@@ -46,5 +46,5 @@ public class NotificationReceiver extends BroadcastReceiver {
         NotificationManagerCompat.from(context).notify(1,notification);
 
         DatabaseHelper.addNotification(Utils.getCurrentUserToken(context),new com.example.sapihub.Model.Notification(notificationTitle,notificationMessage,notificationDate));
-    }
+   */ }
 }

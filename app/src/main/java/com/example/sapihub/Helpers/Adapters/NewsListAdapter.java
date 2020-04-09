@@ -69,6 +69,7 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
             }
         }
         loadAuthorData(holder, newsList.get(position).getAuthor());
+        loadCurrentUserImage(holder);
         checkIfSaved(holder.savePostImage, newsList.get(position));
     }
 
@@ -110,6 +111,7 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
                     Uri imageUri = (Uri) object;
                     Glide.with(context).load(imageUri.toString())
                             .circleCrop()
+                            .apply(new RequestOptions().override(150, 150))
                             .into(holder.authorImage);
                 }
             }
@@ -140,6 +142,21 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
         }
     }
 
+    private void loadCurrentUserImage(final ListViewHolder holder){
+        DatabaseHelper.getProfilePicture(Utils.getCurrentUserToken(context), new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                if (object != null){
+                    Uri imageUri = (Uri) object;
+                    Glide.with(context).load(imageUri.toString())
+                            .circleCrop()
+                            .apply(new RequestOptions().override(100, 100))
+                            .into(holder.currentUserImage);
+                }
+            }
+        });
+    }
+
     @Override
     public int getItemCount() {
         return newsList.size();
@@ -148,7 +165,7 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
     public static class ListViewHolder extends RecyclerView.ViewHolder {
         private LinearLayout imageContainer, newsLayout;
         private TextView title, content, date, author;
-        private ImageView authorImage, moreOptionsImage, savePostImage, writeCommentImage, sendComment;
+        private ImageView authorImage, moreOptionsImage, savePostImage, writeCommentImage, sendComment, currentUserImage;
 
         private ListViewHolder(@NonNull final View itemView, final NewsClickListener newsClickListener, final String TAG) {
             super(itemView);
@@ -162,6 +179,7 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
             this.savePostImage = itemView.findViewById(R.id.savePost);
             this.writeCommentImage = itemView.findViewById(R.id.addComment);
             this.sendComment = itemView.findViewById(R.id.sendCommentButton);
+            this.currentUserImage = itemView.findViewById(R.id.currentUserImage);
 
             this.newsLayout = itemView.findViewById(R.id.newsLayout);
             newsLayout.setOnClickListener(new View.OnClickListener() {

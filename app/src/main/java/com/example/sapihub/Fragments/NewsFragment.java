@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,6 +28,7 @@ import android.widget.Toast;
 
 import com.example.sapihub.Activities.AddNewsActivity;
 import com.example.sapihub.Activities.NewsDetailsActivity;
+import com.example.sapihub.Activities.UserProfileActivity;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Adapters.NewsListAdapter;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
@@ -43,14 +45,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NewsFragment extends Fragment implements View.OnClickListener, NewsListAdapter.ListViewHolder.NewsClickListener, SearchView.OnQueryTextListener {
+public class NewsFragment extends Fragment implements View.OnClickListener, NewsListAdapter.ListViewHolder.NewsClickListener, SearchView.OnQueryTextListener{
     private NewsListAdapter adapter;
     private ProgressDialog loadingDialog;
     private ImageView addNews;
@@ -96,6 +94,20 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
 
         adapter = new NewsListAdapter(null,newsList,getContext(),this);
         listView.setAdapter(adapter);
+        listView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                switch (newState){
+                    case RecyclerView.SCROLL_STATE_DRAGGING:
+                        addNews.setVisibility(View.GONE);
+                        break;
+                    case RecyclerView.SCROLL_STATE_IDLE:
+                        addNews.setVisibility(View.VISIBLE);
+                        break;
+                }
+            }
+        });
 
         loadingDialog = new ProgressDialog(getContext(), R.style.ProgressDialog);
         loadingDialog.setMessage(getString(R.string.loading));
@@ -144,7 +156,9 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
             ViewPager viewPager = getActivity().findViewById(R.id.viewpager);
             viewPager.setCurrentItem(3);
         } else {
-            //todo user activity
+            Intent profileIntent = new Intent(getActivity(),UserProfileActivity.class);
+            profileIntent.putExtra("userId",newsList.get(position).getAuthor());
+            startActivity(profileIntent);
         }
     }
 
@@ -287,6 +301,8 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
 
                 }
             });
+        } else {
+            getData();
         }
         return true;
     }
@@ -317,4 +333,6 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
         }
         return true;
     }
+
+
 }

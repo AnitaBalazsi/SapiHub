@@ -9,9 +9,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
@@ -21,7 +23,7 @@ import com.example.sapihub.R;
 
 import java.util.List;
 
-public class CommentListAdapter extends RecyclerView.Adapter<CommentListAdapter.ListViewHolder> {
+public class CommentListAdapter extends RecyclerView.Adapter<CommentListAdapter.ListViewHolder>  {
     private Context context;
     private List<Comment> comments;
     private CommentClickListener commentClickListener;
@@ -47,7 +49,30 @@ public class CommentListAdapter extends RecyclerView.Adapter<CommentListAdapter.
         }
         holder.date.setText(comments.get(position).getDate());
         holder.content.setText(comments.get(position).getContent());
+
+        holder.replyListView.setAdapter(new ReplyListAdapter(context,comments.get(position).getReplies()));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        layoutManager.setReverseLayout(true);
+        layoutManager.setStackFromEnd(true);
+        holder.replyListView.setLayoutManager(layoutManager);
+
         loadAuthorData(holder,position);
+        loadCurrentUserImage(holder);
+    }
+
+    private void loadCurrentUserImage(final ListViewHolder holder){
+        DatabaseHelper.getProfilePicture(Utils.getCurrentUserToken(context), new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                if (object != null){
+                    Uri imageUri = (Uri) object;
+                    Glide.with(context).load(imageUri.toString())
+                            .circleCrop()
+                            .apply(new RequestOptions().override(100, 100))
+                            .into(holder.currentUserImage);
+                }
+            }
+        });
     }
 
     @Override
@@ -75,6 +100,7 @@ public class CommentListAdapter extends RecyclerView.Adapter<CommentListAdapter.
                     Uri imageUri = (Uri) object;
                     Glide.with(context).load(imageUri.toString())
                             .circleCrop()
+                            .apply(new RequestOptions().override(150, 150))
                             .into(holder.authorImage);
                 }
             }
@@ -86,12 +112,17 @@ public class CommentListAdapter extends RecyclerView.Adapter<CommentListAdapter.
         return comments.size();
     }
 
+
     public class ListViewHolder extends RecyclerView.ViewHolder {
-        private ImageView authorImage, optionsImage;
+        private ImageView authorImage, optionsImage, writeComment, sendComment, currentUserImage;
         private TextView authorName, date, content;
+        private RecyclerView replyListView;
 
         public ListViewHolder(@NonNull final View itemView, final CommentClickListener commentClickListener) {
             super(itemView);
+
+            replyListView = itemView.findViewById(R.id.replyList);
+            currentUserImage = itemView.findViewById(R.id.currentUserImage);
             authorImage = itemView.findViewById(R.id.authorImage);
             authorName = itemView.findViewById(R.id.authorName);
             date = itemView.findViewById(R.id.commentDate);
@@ -103,10 +134,27 @@ public class CommentListAdapter extends RecyclerView.Adapter<CommentListAdapter.
                     commentClickListener.onMoreOptionsClick(itemView,getAdapterPosition());
                 }
             });
+            writeComment = itemView.findViewById(R.id.addComment);
+            writeComment.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    commentClickListener.onWriteReplyClick(itemView,getAdapterPosition());
+                }
+            });
+            sendComment = itemView.findViewById(R.id.sendComment);
+            sendComment.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    commentClickListener.onSendReplyClick(itemView,getAdapterPosition());
+                }
+            });
+
         }
     }
 
     public interface CommentClickListener{
         void onMoreOptionsClick(View itemView, int position);
+        void onWriteReplyClick(View itemView, int position);
+        void onSendReplyClick(View itemView, int position);
     }
 }

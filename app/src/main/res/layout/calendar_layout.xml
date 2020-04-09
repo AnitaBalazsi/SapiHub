@@ -18,8 +18,7 @@
             android:layout_width="75dp"
             android:layout_height="75dp"
             android:layout_weight="1"
-            android:rotation="180"
-            android:src="@drawable/ic_navigate_next_white_24dp"/>
+            android:src="@drawable/ic_keyboard_arrow_left"/>
         <TextView
             android:id="@+id/selectedDate"
             android:layout_width="match_parent"
@@ -35,7 +34,7 @@
             android:layout_width="75dp"
             android:layout_height="75dp"
             android:layout_weight="1"
-            android:src="@drawable/ic_navigate_next_white_24dp"/>
+            android:src="@drawable/ic_keyboard_arrow_right"/>
     </LinearLayout>
 
     <LinearLayout

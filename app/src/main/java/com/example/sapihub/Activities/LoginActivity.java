@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -198,7 +199,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void storeUserData() {
-        User user = new User(nameInput.getText().toString().trim(),token);
+        User user = new User(nameInput.getText().toString().replace(" ",""),token);
         switch (radioGroup.getCheckedRadioButtonId()){
             case 1:
                 user.setOccupation(getString(R.string.teacher));
@@ -214,7 +215,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             user.setDegree(degreeInput.getSelectedItem().toString());
         }
         user.setDepartment(departmentInput.getSelectedItem().toString());
-
+        user.setTypingTo(null);
         DatabaseHelper.addUser(user);
     }
 

@@ -91,4 +91,11 @@
     <string name="editComment">Hozzászólás szerkesztése</string>
     <string name="confirmDeleteComment">Biztosan törli a hozzászólást?</string>
     <string name="search">Keresés</string>
+    <string name="writeReply">Válasz írása…</string>
+    <string name="messageDelivered">Elküldve</string>
+    <string name="messageSeen">Látta</string>
+    <string name="writeMessage">Üzenet küldése…</string>
+    <string name="isTyping">Éppen ír…</string>
+    <string name="imageSent">Fényképet küldtél</string>
+    <string name="imageReceived">fényképet küldött</string>
 </resources>
