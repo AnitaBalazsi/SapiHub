@@ -26,10 +26,16 @@ import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Helpers.Adapters.ChatAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
+import com.example.sapihub.Helpers.RetrofitClient;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Chat;
 import com.example.sapihub.Model.Message;
 import com.example.sapihub.Model.User;
+import com.example.sapihub.Model.Notifications.FCMToken;
+import com.example.sapihub.Helpers.FCMAPI;
+import com.example.sapihub.Model.Notifications.NotificationData;
+import com.example.sapihub.Model.Notifications.NotificationResponse;
+import com.example.sapihub.Model.Notifications.NotificationSender;
 import com.example.sapihub.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -40,6 +46,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ChatActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher {
     private TextView username, isTyping;
@@ -53,6 +63,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     private ValueEventListener eventListener;
     private Uri cameraImageUri;
     private Chat chatRoom;
+    private FCMAPI api;
+    private boolean notify = false;
 
     private static int IMAGE_FROM_GALLERY = 1;
     private static int IMAGE_FROM_CAMERA = 2;
@@ -160,6 +172,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         adapter = new ChatAdapter(this,messageList);
         chatView.setAdapter(adapter);
 
+        api = RetrofitClient.getRetrofit("https://fcm.googleapis.com/").create(FCMAPI.class);
     }
 
     @Override
@@ -233,10 +246,24 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         });
+
+        notify = true;
+        DatabaseHelper.getUserData(currentUserId, new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                User user = (User) object;
+                if (notify){
+                    NotificationData notificationData = new NotificationData(userId,"New message",user.getName()+" fenykepett kuldott",R.mipmap.ic_launcher);
+                    sendNotification(userId,notificationData); //todo
+                }
+                notify = false;
+            }
+        });
     }
 
     private void sendTextMessage() {
-        String message = messageInput.getText().toString().trim();
+        notify = true;
+        final String message = messageInput.getText().toString().trim();
         String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
         if (message.isEmpty()){
@@ -244,10 +271,50 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             messageInput.requestFocus();
         } else {
             chatRoom.addMessage(new Message(currentUserId,userId,message,date,"text",false));
-            DatabaseHelper.addMessage(chatId,chatRoom.getMessages()); //todo hardcoded string
+            DatabaseHelper.addMessage(chatId,chatRoom.getMessages()); //todo
             messageInput.setText(null);
             adapter.notifyDataSetChanged();
         }
+
+        DatabaseHelper.getUserData(currentUserId, new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                User user = (User) object;
+                if (notify){
+                    NotificationData notificationData = new NotificationData(userId,"New message",user.getName()+": "+message,R.drawable.ic_launcher_background);
+                    sendNotification(userId,notificationData);
+                }
+                notify = false;
+            }
+        });
+    }
+
+    private void sendNotification(final String userId, final NotificationData notificationData) {
+        DatabaseHelper.tokensReference.orderByKey().equalTo(userId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot tokenData : dataSnapshot.getChildren()){
+                    FCMToken token = tokenData.getValue(FCMToken.class);
+                    NotificationSender sender = new NotificationSender(notificationData,token.getToken());
+                    api.sendNotification(sender).enqueue(new Callback<NotificationResponse>() {
+                        @Override
+                        public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
+
+                        }
+
+                        @Override
+                        public void onFailure(Call<NotificationResponse> call, Throwable t) {
+
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void getMessages(){

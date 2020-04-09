@@ -2,7 +2,6 @@ package com.example.sapihub.Helpers.Database;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -12,8 +11,8 @@ import com.example.sapihub.Model.Comment;
 import com.example.sapihub.Model.Event;
 import com.example.sapihub.Model.Message;
 import com.example.sapihub.Model.News;
-import com.example.sapihub.Model.Notification;
 import com.example.sapihub.Model.User;
+import com.example.sapihub.Model.Notifications.FCMToken;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -32,7 +31,7 @@ public class DatabaseHelper {
     public static DatabaseReference newsReference = FirebaseDatabase.getInstance().getReference("News");
     public static DatabaseReference eventsReference = FirebaseDatabase.getInstance().getReference("Events");
     public static DatabaseReference savedPostsReference = FirebaseDatabase.getInstance().getReference("Saved Posts");
-    public static DatabaseReference notificationsReference = FirebaseDatabase.getInstance().getReference("Notifications");
+    public static DatabaseReference tokensReference = FirebaseDatabase.getInstance().getReference("Tokens");
     public static DatabaseReference commentsReference = FirebaseDatabase.getInstance().getReference("Comments");
     public static StorageReference profilePictureRef = FirebaseStorage.getInstance().getReference("Profile pictures");
     public static StorageReference newsPictureRef = FirebaseStorage.getInstance().getReference("News pictures");
@@ -87,26 +86,6 @@ public class DatabaseHelper {
 
             }
         });
-    }
-
-    public static void addNotification(final String username, final Notification notification){
-        notificationsReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                String key = notificationsReference.child(username).push().getKey();
-                notification.setId(key);
-                notificationsReference.child(username).child(key).setValue(notification);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    public static void deleteNotification(final String username, final Notification notification){
-        notificationsReference.child(username).child(notification.getId()).removeValue();
     }
 
     public static void uploadNewsImage(Context context, String newsName, String newsDate, Uri imagePath, final FirebaseCallback callback){
@@ -355,6 +334,10 @@ public class DatabaseHelper {
 
             }
         });
+    }
+
+    public static void saveFCMToken(FCMToken token, String user){
+        tokensReference.child(user).setValue(token);
     }
 }
 

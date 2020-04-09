@@ -172,7 +172,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
                 if (String.valueOf(item.getTitle()).equals(getActivity().getString(R.string.deletePost))){
                     showConfirmDeleteDialog(position);
                 } else {
-                    //todo modify
+                    //todo
                 }
                 return true;
             }

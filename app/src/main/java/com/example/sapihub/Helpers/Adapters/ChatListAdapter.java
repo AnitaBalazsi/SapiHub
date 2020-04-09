@@ -153,6 +153,6 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ListVi
     }
 
     public interface ContactClickListener{
-        void onContactClick(int position); //todo new name
+        void onContactClick(int position);
     }
 }

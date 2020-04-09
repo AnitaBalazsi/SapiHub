@@ -163,7 +163,7 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
     }
 
     public static class ListViewHolder extends RecyclerView.ViewHolder {
-        private LinearLayout imageContainer, newsLayout;
+        private LinearLayout imageContainer, newsLayout, authorLayout;
         private TextView title, content, date, author;
         private ImageView authorImage, moreOptionsImage, savePostImage, writeCommentImage, sendComment, currentUserImage;
 
@@ -180,6 +180,7 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
             this.writeCommentImage = itemView.findViewById(R.id.addComment);
             this.sendComment = itemView.findViewById(R.id.sendCommentButton);
             this.currentUserImage = itemView.findViewById(R.id.currentUserImage);
+            this.authorLayout = itemView.findViewById(R.id.authorLayout);
 
             this.newsLayout = itemView.findViewById(R.id.newsLayout);
             newsLayout.setOnClickListener(new View.OnClickListener() {
@@ -188,7 +189,7 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ListVi
                     newsClickListener.onNewsClick(getAdapterPosition(), TAG);
                 }
             });
-            authorImage.setOnClickListener(new View.OnClickListener() {
+            authorLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     newsClickListener.onProfileClick(getAdapterPosition());

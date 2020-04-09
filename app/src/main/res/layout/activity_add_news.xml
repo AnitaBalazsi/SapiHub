@@ -81,7 +81,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
-                        <!-- todo visibility -->
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>

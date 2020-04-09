@@ -3,7 +3,6 @@ package com.example.sapihub.Fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,17 +15,18 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sapihub.Activities.ChatActivity;
-import com.example.sapihub.Activities.UserProfileActivity;
 import com.example.sapihub.Helpers.Adapters.ChatListAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Chat;
 import com.example.sapihub.Model.Message;
+import com.example.sapihub.Model.Notifications.FCMToken;
 import com.example.sapihub.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -43,6 +43,7 @@ public class MessagesFragment extends Fragment implements ChatListAdapter.Contac
     private List<Chat> chatList = new ArrayList<>();
     private ChatListAdapter adapter;
 
+
     public MessagesFragment() {
         // Required empty public constructor
     }
@@ -58,6 +59,8 @@ public class MessagesFragment extends Fragment implements ChatListAdapter.Contac
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        DatabaseHelper.saveFCMToken(new FCMToken(FirebaseInstanceId.getInstance().getToken()), Utils.getCurrentUserToken(getContext()));
         initializeVariables();
         getMessageList(new FirebaseCallback() {
             @Override
@@ -76,7 +79,7 @@ public class MessagesFragment extends Fragment implements ChatListAdapter.Contac
                     }
                 }));
                 adapter.notifyDataSetChanged();
-                //TODO COMPARE FIX
+                //TODO
             }
         });
     }
@@ -100,7 +103,7 @@ public class MessagesFragment extends Fragment implements ChatListAdapter.Contac
                 chatList.clear();
                 for (DataSnapshot chatData : dataSnapshot.getChildren()){
                     Chat chat = chatData.getValue(Chat.class);
-                    if (chat.getUsers().contains(currentUser)){
+                    if (chat.getUsers().contains(currentUser) && chat.getMessages().size() > 0){
                         chatList.add(chat);
                     }
                 }

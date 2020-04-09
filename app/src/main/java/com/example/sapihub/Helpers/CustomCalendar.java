@@ -1,16 +1,12 @@
 package com.example.sapihub.Helpers;
 
-import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -32,7 +28,10 @@ import com.example.sapihub.Helpers.Adapters.GridAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Model.Event;
-import com.example.sapihub.Model.Notification;
+import com.example.sapihub.Model.Notifications.FCMToken;
+import com.example.sapihub.Model.Notifications.NotificationData;
+import com.example.sapihub.Model.Notifications.NotificationResponse;
+import com.example.sapihub.Model.Notifications.NotificationSender;
 import com.example.sapihub.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -47,6 +46,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class CustomCalendar extends LinearLayout implements View.OnClickListener {
     private Calendar calendar = Calendar.getInstance();
     private SimpleDateFormat formatter = new SimpleDateFormat("MMMM yyyy");
@@ -57,6 +60,7 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
     private ImageView previousMonth, nextMonth;
     private GridAdapter gridAdapter;
     private Context context;
+    private FCMAPI api;
 
     private List<Date> dates = new ArrayList<>();
     private List<Event> eventsList = new ArrayList<>();
@@ -69,6 +73,7 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
         super(context, attrs);
         this.context = context;
 
+        api = RetrofitClient.getRetrofit("https://fcm.googleapis.com/").create(FCMAPI.class);
         loadingDialog = new ProgressDialog(getContext(), R.style.ProgressDialog);
         loadingDialog.setMessage(getContext().getString(R.string.loading));
 
@@ -187,8 +192,14 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
         Calendar eventDateCalendar = Calendar.getInstance();
         //send notification in event time, one our and one day before
 
-        Notification notification = new Notification(getResources().getString(R.string.upcomingEvent),event.getMessage() + " " + event.getDate(),null);
-        notification.setDate(Utils.dateToString(eventDateCalendar.getTime()));
+        NotificationData notificationData = new NotificationData(Utils.getCurrentUserToken(context),context.getString(R.string.upcomingEvent),
+                event.getMessage() + " " + event.getDate(), R.mipmap.ic_launcher, true, Utils.dateToString(eventDateCalendar.getTime()));
+        sendNotification(notificationData);
+
+        //todo
+
+     //   Notification notification = new Notification(getResources().getString(R.string.upcomingEvent),event.getMessage() + " " + event.getDate(),null);
+     /*  notification.setDate(Utils.dateToString(eventDateCalendar.getTime()));
 
         eventDateCalendar.setTime(dates.get(position));
         Utils.setAlarmForNotification(context,eventDateCalendar,notification);
@@ -198,7 +209,36 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
 
         eventDateCalendar.add(Calendar.DATE,1);
         eventDateCalendar.add(Calendar.HOUR,-1);
-        Utils.setAlarmForNotification(context,eventDateCalendar,notification);
+        Utils.setAlarmForNotification(context,eventDateCalendar,notification);*/
+
+
+    }
+
+    private void sendNotification(final NotificationData notificationData){
+        DatabaseHelper.tokensReference.orderByKey().equalTo(Utils.getCurrentUserToken(context)).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot tokenData : dataSnapshot.getChildren()){
+                    FCMToken token = tokenData.getValue(FCMToken.class);
+                    NotificationSender sender = new NotificationSender(notificationData,token.getToken());
+                    api.sendNotification(sender).enqueue(new Callback<NotificationResponse>() {
+                        @Override
+                        public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
+                        }
+
+                        @Override
+                        public void onFailure(Call<NotificationResponse> call, Throwable t) {
+
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void createEventList(RecyclerView listView, Date date) {

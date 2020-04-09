@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.view.View;
 
-import com.example.sapihub.Model.Notification;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.text.ParseException;
@@ -23,18 +22,6 @@ public class Utils {
         Snackbar snackbar = Snackbar.make(view, text, Snackbar.LENGTH_LONG);
         snackbar.getView().setBackgroundColor(color);
         snackbar.show();
-    }
-
-
-    public static void setAlarmForNotification(Context context, Calendar calendar, Notification notification) {
-        Intent intent = new Intent(context, NotificationReceiver.class);
-        intent.putExtra("notificationTitle",notification.getTitle());
-        intent.putExtra("notificationMessage",notification.getMessage());
-        intent.putExtra("notificationDate",notification.getDate());
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,0,intent,0);
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),pendingIntent);
     }
 
     public static String getCurrentUserToken(Context context){
@@ -62,12 +49,12 @@ public class Utils {
     }
 
     public static String dateToString(Date date){
-        SimpleDateFormat format = new SimpleDateFormat("yyyy. MM. dd. HH:mm");
+        SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-DD HH:MM:SS");
         return format.format(date);
     }
 
     public static Date stringToDate (String date) throws ParseException {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy. MM. dd. HH:mm");
+        SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-DD HH:MM:SS");
         return format.parse(date);
     }
 

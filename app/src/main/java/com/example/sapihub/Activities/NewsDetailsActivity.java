@@ -232,7 +232,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
                 if (String.valueOf(item.getTitle()).equals(getString(R.string.deleteComment))){
                     showConfirmDeleteDialog(position);
                 } else {
-                    //modify todo
+                    //todo
                 }
                 return true;
             }

@@ -34,9 +34,17 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".Helpers.FirebaseService">
+        <service android:name=".Helpers.FirebaseService"
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+                <action android:name="com.google.firebase.INSTANCE_ID_SERVICE"/>
+            </intent-filter>
+        </service>
+
+        <service android:name=".Helpers.FirebaseMessaging">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
         </service>
 

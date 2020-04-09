@@ -10,28 +10,16 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.sapihub.Helpers.Database.DatabaseHelper;
-import com.example.sapihub.Helpers.Adapters.NotificationListAdapter;
-import com.example.sapihub.Helpers.Utils;
-import com.example.sapihub.Model.Notification;
 import com.example.sapihub.R;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
-
-import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class NotificationsFragment extends Fragment {
-    private NotificationListAdapter adapter;
+   // private NotificationListAdapter adapter;
     private ProgressDialog loadingDialog;
-    private ArrayList<Notification> notificationList = new ArrayList<>();
+   // private ArrayList<Notification> notificationList = new ArrayList<>();
 
     public NotificationsFragment() {
         // Required empty public constructor
@@ -48,12 +36,12 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initializeVariables();
-        loadingDialog.show();
-        getData();
+     //   initializeVariables();
+     //   loadingDialog.show();
+     //   getData();
     }
 
-    private void initializeVariables() {
+ /*   private void initializeVariables() {
         RecyclerView listView = getView().findViewById(R.id.notificationList);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         listView.setLayoutManager(layoutManager);
@@ -83,5 +71,5 @@ public class NotificationsFragment extends Fragment {
             }
         });
         loadingDialog.dismiss();
-    }
+    }*/
 }
