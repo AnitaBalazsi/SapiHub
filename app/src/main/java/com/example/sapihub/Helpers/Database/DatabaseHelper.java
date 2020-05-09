@@ -11,8 +11,8 @@ import com.example.sapihub.Model.Comment;
 import com.example.sapihub.Model.Event;
 import com.example.sapihub.Model.Message;
 import com.example.sapihub.Model.News;
-import com.example.sapihub.Model.User;
 import com.example.sapihub.Model.Notifications.FCMToken;
+import com.example.sapihub.Model.User;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -61,17 +61,11 @@ public class DatabaseHelper {
     }
 
     public static void addNews(final News news){
-        newsReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                newsReference.push().setValue(news);
-            }
+        newsReference.push().setValue(news);
+    }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+    public static void modifyNews(String key, final News news){
+        newsReference.child(key).setValue(news);
     }
 
     public static void addEvent (final String username, final Event event){
@@ -228,13 +222,15 @@ public class DatabaseHelper {
             }
         });
 
-        for (String imageUrl : news.getImages()){
-            newsPictureRef.child(news.getTitle().concat(news.getDate())).child(imageUrl).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    callback.onCallback(true);
-                }
-            });
+        if (news.getImages() != null){
+            for (String imageUrl : news.getImages()){
+                newsPictureRef.child(news.getTitle().concat(news.getDate())).child(imageUrl).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        callback.onCallback(true);
+                    }
+                });
+            }
         }
     }
 
@@ -338,6 +334,10 @@ public class DatabaseHelper {
 
     public static void saveFCMToken(FCMToken token, String user){
         tokensReference.child(user).setValue(token);
+    }
+
+    public static void changeStatus(String userId, String status){
+        userReference.child(userId).child("status").setValue(status);
     }
 }
 

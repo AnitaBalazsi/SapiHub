@@ -1,7 +1,6 @@
 package com.example.sapihub.Helpers.Adapters;
 
 import android.content.Context;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,8 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
@@ -57,22 +54,7 @@ public class CommentListAdapter extends RecyclerView.Adapter<CommentListAdapter.
         holder.replyListView.setLayoutManager(layoutManager);
 
         loadAuthorData(holder,position);
-        loadCurrentUserImage(holder);
-    }
-
-    private void loadCurrentUserImage(final ListViewHolder holder){
-        DatabaseHelper.getProfilePicture(Utils.getCurrentUserToken(context), new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                if (object != null){
-                    Uri imageUri = (Uri) object;
-                    Glide.with(context).load(imageUri.toString())
-                            .circleCrop()
-                            .apply(new RequestOptions().override(100, 100))
-                            .into(holder.currentUserImage);
-                }
-            }
-        });
+        Utils.loadProfilePicture(context,holder.currentUserImage,Utils.getCurrentUserToken(context),100,100);
     }
 
     @Override
@@ -93,18 +75,7 @@ public class CommentListAdapter extends RecyclerView.Adapter<CommentListAdapter.
                 holder.authorName.setText(author.getName());
             }
         });
-        DatabaseHelper.getProfilePicture(comments.get(position).getAuthor(), new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                if (object != null){
-                    Uri imageUri = (Uri) object;
-                    Glide.with(context).load(imageUri.toString())
-                            .circleCrop()
-                            .apply(new RequestOptions().override(150, 150))
-                            .into(holder.authorImage);
-                }
-            }
-        });
+        Utils.loadProfilePicture(context,holder.authorImage,comments.get(position).getAuthor(),100,100);
     }
 
     @Override

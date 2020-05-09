@@ -3,11 +3,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".Fragments.MessagesFragment">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/chatListView"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabs"
+        android:background="@color/colorGreen"
+        app:tabTextColor="@color/colorWhite"
+        app:tabSelectedTextColor="@color/colorWhite"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="wrap_content"/>
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/messagesViewPager"
+        android:layout_below="@id/tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
 </RelativeLayout>

@@ -1,8 +1,8 @@
 package com.example.sapihub.Fragments;
 
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,39 +10,19 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
 
-import com.example.sapihub.Activities.ChatActivity;
-import com.example.sapihub.Helpers.Adapters.ChatListAdapter;
-import com.example.sapihub.Helpers.Database.DatabaseHelper;
-import com.example.sapihub.Helpers.Database.FirebaseCallback;
-import com.example.sapihub.Helpers.Utils;
-import com.example.sapihub.Model.Chat;
-import com.example.sapihub.Model.Message;
-import com.example.sapihub.Model.Notifications.FCMToken;
+import com.example.sapihub.Helpers.Adapters.ViewPagerAdapter;
 import com.example.sapihub.R;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.iid.FirebaseInstanceId;
-
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import com.google.android.material.tabs.TabLayout;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class MessagesFragment extends Fragment implements ChatListAdapter.ContactClickListener {
-    private RecyclerView chatListView;
-    private String currentUser;
-    private List<Chat> chatList = new ArrayList<>();
-    private ChatListAdapter adapter;
-
+public class MessagesFragment extends Fragment {
+    private ViewPager viewPager;
+    private ViewPagerAdapter adapter;
+    private TabLayout tabLayout;
 
     public MessagesFragment() {
         // Required empty public constructor
@@ -59,73 +39,21 @@ public class MessagesFragment extends Fragment implements ChatListAdapter.Contac
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        DatabaseHelper.saveFCMToken(new FCMToken(FirebaseInstanceId.getInstance().getToken()), Utils.getCurrentUserToken(getContext()));
-        initializeVariables();
-        getMessageList(new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                Collections.sort(chatList, Collections.reverseOrder(new Comparator<Chat>() {
-                    @Override
-                    public int compare(Chat o1, Chat o2) {
-                        Message l1 = o1.getMessages().get(o1.getMessages().size() - 1);
-                        Message l2 = o2.getMessages().get(o2.getMessages().size() - 1);
-                        try {
-                            return Utils.stringToDate(l1.getDate()).compareTo(Utils.stringToDate(l2.getDate()));
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                        return 0;
-                    }
-                }));
-                adapter.notifyDataSetChanged();
-                //TODO
-            }
-        });
+        setupViewPager();
     }
 
-    private void initializeVariables() {
-        currentUser = Utils.getCurrentUserToken(getContext());
+    private void setupViewPager() {
+        viewPager = getView().findViewById(R.id.messagesViewPager);
+        adapter = new ViewPagerAdapter(getChildFragmentManager());
+        adapter.addFragment(new ChatsFragment());
+        adapter.addFragment(new ChatUsersFragment());
+        viewPager.setAdapter(adapter);
 
-        chatListView = getView().findViewById(R.id.chatListView);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-        chatListView.setLayoutManager(layoutManager);
-        chatListView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
-
-        adapter = new ChatListAdapter(chatList,getContext(),this);
-        chatListView.setAdapter(adapter);
+        tabLayout = getView().findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
+        tabLayout.getTabAt(0).setText(getString(R.string.messages));
+        tabLayout.getTabAt(1).setText(getString(R.string.users));
     }
 
-    private void getMessageList(final FirebaseCallback callback){
-        DatabaseHelper.chatReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                chatList.clear();
-                for (DataSnapshot chatData : dataSnapshot.getChildren()){
-                    Chat chat = chatData.getValue(Chat.class);
-                    if (chat.getUsers().contains(currentUser) && chat.getMessages().size() > 0){
-                        chatList.add(chat);
-                    }
-                }
-                callback.onCallback(null);
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    @Override
-    public void onContactClick(int position) {
-        for (String user : chatList.get(position).getUsers()){
-            if (!user.equals(Utils.getCurrentUserToken(getContext()))){
-                Intent intent = new Intent(getActivity(), ChatActivity.class);
-                intent.putExtra("userId",user);
-                startActivity(intent);
-            }
-        }
-
-    }
 }

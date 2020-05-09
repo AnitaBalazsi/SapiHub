@@ -1,7 +1,5 @@
 package com.example.sapihub.Model;
 
-import android.util.Log;
-
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;

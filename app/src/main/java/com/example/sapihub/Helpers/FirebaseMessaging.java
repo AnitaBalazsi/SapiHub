@@ -18,9 +18,11 @@ public class FirebaseMessaging extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-        String sentTo = remoteMessage.getData().get("sentTo");
-        if (sentTo != null && sentTo.equals(Utils.getCurrentUserToken(this))){
-           sendNotification(remoteMessage);
+
+        if (Boolean.valueOf(remoteMessage.getData().get("isScheduled"))){
+
+        } else {
+            sendNotification(remoteMessage);
         }
     }
 

@@ -3,11 +3,11 @@ package com.example.sapihub.Helpers.Adapters;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.fragment.app.FragmentStatePagerAdapter;
 
 import java.util.ArrayList;
 
-public class ViewPagerAdapter extends FragmentPagerAdapter {
+public class ViewPagerAdapter extends FragmentStatePagerAdapter {
     private final ArrayList<Fragment> fragmentList = new ArrayList<>();
 
     public ViewPagerAdapter(FragmentManager fm) {
@@ -27,4 +27,6 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
     public void addFragment(Fragment fragment){
         fragmentList.add(fragment);
     }
+
+
 }

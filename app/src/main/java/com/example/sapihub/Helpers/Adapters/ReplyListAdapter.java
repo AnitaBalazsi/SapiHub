@@ -1,7 +1,6 @@
 package com.example.sapihub.Helpers.Adapters;
 
 import android.content.Context;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,8 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
@@ -58,18 +55,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.List
                 holder.authorName.setText(author.getName());
             }
         });
-        DatabaseHelper.getProfilePicture(replies.get(position).getAuthor(), new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                if (object != null){
-                    Uri imageUri = (Uri) object;
-                    Glide.with(context).load(imageUri.toString())
-                            .circleCrop()
-                            .apply(new RequestOptions().override(150, 150))
-                            .into(holder.authorImage);
-                }
-            }
-        });
+        Utils.loadProfilePicture(context,holder.authorImage,replies.get(position).getAuthor(),100,100);
     }
     @Override
     public int getItemCount() {

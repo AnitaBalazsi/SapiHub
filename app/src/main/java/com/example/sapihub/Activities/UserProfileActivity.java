@@ -2,7 +2,6 @@ package com.example.sapihub.Activities;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -13,11 +12,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Helpers.Adapters.NewsListAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
+import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
@@ -29,8 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserProfileActivity extends AppCompatActivity implements View.OnClickListener {
-    private TextView username, department, degree, studyYear, sendMessage;
-    private ImageView profilePicture;
+    private TextView username, department, degree, studyYear;
+    private ImageView profilePicture, sendMessage;
     private ProgressDialog loadingDialog;
     private String userId;
     private NewsListAdapter newsAdapter;
@@ -64,18 +62,7 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
             }
         });
 
-        DatabaseHelper.getProfilePicture(userId, new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                if (object != null){
-                    Uri imageUri = (Uri) object;
-                    Glide.with(getBaseContext()).load(imageUri.toString())
-                            .apply(new RequestOptions().override(600, 600))
-                            .circleCrop()
-                            .into(profilePicture);
-                }
-            }
-        });
+        Utils.loadProfilePicture(this,profilePicture,userId,350,350);
     }
 
     private void initializeVariables() {

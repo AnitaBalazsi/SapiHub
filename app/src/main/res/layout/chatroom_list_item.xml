@@ -7,10 +7,25 @@
     android:padding="15dp"
     android:id="@+id/itemLayout">
 
-    <ImageView
-        android:id="@+id/profilePicture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+   <RelativeLayout
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content">
+       <ImageView
+           android:id="@+id/profilePicture"
+           android:layout_marginTop="5dp"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"/>
+
+       <ImageView
+           android:id="@+id/onlineIcon"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_alignBottom="@id/profilePicture"
+           android:layout_alignEnd="@id/profilePicture"
+           android:layout_marginEnd="3dp"
+           android:visibility="invisible"
+           android:src="@drawable/online_icon" />
+   </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

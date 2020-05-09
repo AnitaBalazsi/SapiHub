@@ -2,58 +2,78 @@ package com.example.sapihub.Fragments;
 
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
+import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.SearchView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
-
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.PopupMenu;
-import android.widget.SearchView;
-import android.widget.Toast;
 
 import com.example.sapihub.Activities.AddNewsActivity;
 import com.example.sapihub.Activities.NewsDetailsActivity;
 import com.example.sapihub.Activities.UserProfileActivity;
-import com.example.sapihub.Helpers.Database.DatabaseHelper;
+import com.example.sapihub.Helpers.Adapters.ChatListAdapter;
 import com.example.sapihub.Helpers.Adapters.NewsListAdapter;
+import com.example.sapihub.Helpers.Adapters.PopUpDialogListAdapter;
+import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
+import com.example.sapihub.Model.Chat;
 import com.example.sapihub.Model.Comment;
+import com.example.sapihub.Model.Message;
 import com.example.sapihub.Model.News;
+import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
+import org.w3c.dom.Text;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NewsFragment extends Fragment implements View.OnClickListener, NewsListAdapter.ListViewHolder.NewsClickListener, SearchView.OnQueryTextListener{
+public class NewsFragment extends Fragment implements View.OnClickListener, NewsListAdapter.ListViewHolder.NewsClickListener, SearchView.OnQueryTextListener, SwipeRefreshLayout.OnRefreshListener {
     private NewsListAdapter adapter;
-    private ProgressDialog loadingDialog;
     private ImageView addNews;
     private ArrayList<News> newsList = new ArrayList<>();
     private SearchView searchView;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private RecyclerView listView;
+    private Dialog popUpDialog;
+    private Uri cameraImageUri;
+
+    private static int FROM_GALLERY = 1;
+    private static int IMAGE_FROM_CAMERA = 2;
 
     public NewsFragment() {
         // Required empty public constructor
@@ -71,21 +91,33 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         initializeVariables();
-        loadingDialog.show();
-        getData();
+        getData(new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        adapter.notifyDataSetChanged();
+        getData(new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     private void initializeVariables() {
         addNews = getView().findViewById(R.id.addNews);
         addNews.setOnClickListener(this);
 
-        RecyclerView listView = getView().findViewById(R.id.newsList);
+        swipeRefreshLayout = getView().findViewById(R.id.swipeLayout);
+        swipeRefreshLayout.setOnRefreshListener(this);
+
+        listView = getView().findViewById(R.id.newsList);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         layoutManager.setReverseLayout(true);
         layoutManager.setStackFromEnd(true); //show newest first
@@ -109,23 +141,21 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
             }
         });
 
-        loadingDialog = new ProgressDialog(getContext(), R.style.ProgressDialog);
-        loadingDialog.setMessage(getString(R.string.loading));
-
         searchView = getView().findViewById(R.id.searchView);
         searchView.setOnQueryTextListener(this);
     }
 
-    private void getData(){
-        DatabaseHelper.newsReference.orderByChild("date").addValueEventListener(new ValueEventListener() {
+    private void getData(final FirebaseCallback callback){
+        DatabaseHelper.newsReference.orderByChild("date").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 newsList.clear();
                 for (DataSnapshot newsData : dataSnapshot.getChildren()){
                     News news = newsData.getValue(News.class);
                     newsList.add(news);
-                    adapter.notifyDataSetChanged();
                 }
+                listView.scrollToPosition(newsList.size() - 1);
+                callback.onCallback(null);
             }
 
             @Override
@@ -133,7 +163,6 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
 
             }
         });
-        loadingDialog.dismiss();
     }
 
     @Override
@@ -172,12 +201,18 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
                 if (String.valueOf(item.getTitle()).equals(getActivity().getString(R.string.deletePost))){
                     showConfirmDeleteDialog(position);
                 } else {
-                    //todo
+                    modifyPost(newsList.get(position));
                 }
                 return true;
             }
         });
         popupMenu.show();
+    }
+
+    private void modifyPost(News news) {
+        Intent intent = new Intent(getActivity(), AddNewsActivity.class);
+        intent.putExtra("selectedPost",news);
+        startActivity(intent);
     }
 
     private void deletePost(News news) {
@@ -256,6 +291,154 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
         }
     }
 
+    @Override
+    public void onSharePost(final int position) {
+        getNewsId(newsList.get(position), new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                String newsId = (String) object;
+                showPopUpDialog(newsId);
+            }
+        });
+    }
+
+    private void showPopUpDialog(final String newsId) {
+        popUpDialog = new Dialog(getContext());
+        popUpDialog.setContentView(R.layout.share_post_popup);
+
+        final RecyclerView recyclerView = popUpDialog.findViewById(R.id.userList);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        getUsers(new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                final List<User> users = (List<User>) object;
+                PopUpDialogListAdapter adapter = new PopUpDialogListAdapter(getContext(), users, new PopUpDialogListAdapter.UserClickListener() {
+                    @Override
+                    public void onUserClick(final int position) {
+                        String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()); //todo
+                        final Message message = new Message(Utils.getCurrentUserToken(getContext()),users.get(position).getToken(),newsId,date,"sharedPost",false);
+                        getChatId(users.get(position).getToken(), new FirebaseCallback() {
+                            @Override
+                            public void onCallback(Object object) {
+                                final DataSnapshot chatData = (DataSnapshot) object;
+                                if (chatData != null){
+                                    sharePost(chatData,message);
+                                } else {
+                                    createChat(users.get(position).getToken(), new FirebaseCallback() {
+                                        @Override
+                                        public void onCallback(Object object) {
+                                            sharePost((DataSnapshot) object,message);
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+                recyclerView.setAdapter(adapter);
+            }
+        });
+
+        popUpDialog.getWindow().setGravity(Gravity.BOTTOM);
+        popUpDialog.show();
+    }
+
+    private void sharePost(DataSnapshot chatData, Message message) {
+        Chat chat = chatData.getValue(Chat.class);
+        chat.addMessage(message);
+        DatabaseHelper.addMessage(chatData.getKey(),chat.getMessages());
+        popUpDialog.dismiss();
+    }
+
+    private void createChat(String token, final FirebaseCallback callback) {
+        //if chatroom not exits create one
+        ArrayList<String> users = new ArrayList<>();
+        users.add(Utils.getCurrentUserToken(getContext()));
+        users.add(token);
+        DatabaseHelper.createChat(new Chat(users), new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                DatabaseHelper.chatReference.child((String) object).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        callback.onCallback(dataSnapshot);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        });
+    }
+
+    private void getChatId(final String token, final FirebaseCallback callback) {
+        final boolean[] idFound = {false};
+        DatabaseHelper.chatReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot chatData : dataSnapshot.getChildren()){
+                    Chat chat = chatData.getValue(Chat.class);
+                    if (chat.getUsers().contains(Utils.getCurrentUserToken(getContext())) && chat.getUsers().contains(token)){
+                        idFound[0] = true;
+                        callback.onCallback(chatData);
+                    }
+                }
+                if (!idFound[0]){
+                    callback.onCallback(null);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void getUsers(final FirebaseCallback callback) {
+        final List<User> userList = new ArrayList<>();
+        DatabaseHelper.userReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                userList.clear();
+                for (DataSnapshot userData : dataSnapshot.getChildren()){
+                    User user = userData.getValue(User.class);
+                    if (!user.getToken().equals(Utils.getCurrentUserToken(getContext()))){
+                        userList.add(user);
+                    }
+                }
+                callback.onCallback(userList);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void getNewsId(final News news, final FirebaseCallback callback) {
+        DatabaseHelper.newsReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot newsData : dataSnapshot.getChildren()){
+                    if (newsData.getValue(News.class).equals(news)){
+                        callback.onCallback(newsData.getKey());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     private void deletePostFromSaved(final ImageView savePostImage, int position, String newsKey) {
         DatabaseHelper.deleteSavedPost(Utils.getCurrentUserToken(getContext()), newsKey, new FirebaseCallback() {
             @Override
@@ -284,7 +467,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
     public boolean onQueryTextSubmit(final String query) {
         if (!query.isEmpty()){
             newsList.clear();
-            DatabaseHelper.newsReference.addValueEventListener(new ValueEventListener() {
+            DatabaseHelper.newsReference.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     for (DataSnapshot newsData : dataSnapshot.getChildren()){
@@ -302,7 +485,12 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
                 }
             });
         } else {
-            getData();
+            getData(new FirebaseCallback() {
+                @Override
+                public void onCallback(Object object) {
+                    adapter.notifyDataSetChanged();
+                }
+            });
         }
         return true;
     }
@@ -311,7 +499,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
     public boolean onQueryTextChange(final String newText) {
         if (newText.length() > 0){
             newsList.clear();
-            DatabaseHelper.newsReference.addValueEventListener(new ValueEventListener() {
+            DatabaseHelper.newsReference.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     for (DataSnapshot newsData : dataSnapshot.getChildren()){
@@ -329,10 +517,25 @@ public class NewsFragment extends Fragment implements View.OnClickListener, News
                 }
             });
         } else {
-            getData();
+            getData(new FirebaseCallback() {
+                @Override
+                public void onCallback(Object object) {
+                    adapter.notifyDataSetChanged();
+                }
+            });
         }
         return true;
     }
 
 
+    @Override
+    public void onRefresh() {
+        getData(new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                adapter.notifyDataSetChanged();
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
+    }
 }

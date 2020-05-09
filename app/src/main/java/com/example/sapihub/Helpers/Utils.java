@@ -1,15 +1,22 @@
 package com.example.sapihub.Helpers;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
+import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
+import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
+import com.example.sapihub.Helpers.Database.DatabaseHelper;
+import com.example.sapihub.Helpers.Database.FirebaseCallback;
+import com.example.sapihub.R;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.text.ParseException;
@@ -35,6 +42,27 @@ public class Utils {
         return cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
     }
 
+    public static void loadProfilePicture(final Context context, final ImageView imageView, String userId, final int width, final int height){
+        DatabaseHelper.getProfilePicture(userId, new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                if (object != null){
+                    Uri imageUri = (Uri) object;
+                    Glide.with(context).load(imageUri.toString())
+                            .circleCrop()
+                            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                            .apply(new RequestOptions().override(width, height))
+                            .placeholder(context.getDrawable(R.drawable.ic_account_circle))
+                            .into(imageView);
+                } else {
+                    imageView.setImageDrawable(context.getDrawable(R.drawable.ic_account_circle));
+                    imageView.getLayoutParams().height = height;
+                    imageView.getLayoutParams().width = width;
+                }
+            }
+        });
+    }
+
 
     public static Date getZeroTimeDate(Date date) {
         Calendar calendar = Calendar.getInstance();
@@ -58,5 +86,19 @@ public class Utils {
         return format.parse(date);
     }
 
+    public static long differenceBetweenDates(String date1, String date2){
+        long diff = 0;
+        try {
+            diff = stringToDate(date1).getTime() - stringToDate(date2).getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
+        return Math.abs(diff);
+    }
+
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+    }
 }

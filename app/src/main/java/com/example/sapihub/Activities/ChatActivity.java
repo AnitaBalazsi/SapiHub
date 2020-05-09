@@ -1,13 +1,7 @@
 package com.example.sapihub.Activities;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -16,26 +10,30 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.sapihub.Helpers.Adapters.ChatAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
+import com.example.sapihub.Helpers.FCMAPI;
 import com.example.sapihub.Helpers.RetrofitClient;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Chat;
 import com.example.sapihub.Model.Message;
-import com.example.sapihub.Model.User;
-import com.example.sapihub.Model.Notifications.FCMToken;
-import com.example.sapihub.Helpers.FCMAPI;
+import com.example.sapihub.Model.News;
 import com.example.sapihub.Model.Notifications.NotificationData;
-import com.example.sapihub.Model.Notifications.NotificationResponse;
-import com.example.sapihub.Model.Notifications.NotificationSender;
+import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -47,14 +45,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-public class ChatActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher {
+public class ChatActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, ChatAdapter.OnSharedPostClickListener {
     private TextView username, isTyping;
     private String userId, currentUserId, chatId;
-    private ImageView profilePicture, sendMessage, imageFromCamera, imageFromGallery;
+    private ImageView profilePicture, sendMessage, imageFromCamera, imageFromGallery, onlineIcon;
     private EditText messageInput;
     private List<Message> messageList = new ArrayList<>();
     private List<String> users = new ArrayList<>();
@@ -66,7 +60,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     private FCMAPI api;
     private boolean notify = false;
 
-    private static int IMAGE_FROM_GALLERY = 1;
+    private static int FROM_GALLERY = 1;
     private static int IMAGE_FROM_CAMERA = 2;
 
     @Override
@@ -81,7 +75,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onCallback(Object object) {
                 chatId = (String) object;
-
                 getUserData();
                 getMessages();
                 chatRoom.setMessages(messageList);
@@ -131,21 +124,14 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 } else {
                     isTyping.setText(null);
                 }
-            }
-        });
 
-        DatabaseHelper.getProfilePicture(userId, new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                if (object != null){
-                    Uri imageUri = (Uri) object;
-                    Glide.with(getBaseContext()).load(imageUri.toString())
-                            .apply(new RequestOptions().override(100, 100))
-                            .circleCrop()
-                            .into(profilePicture);
+                if (user.getStatus().equals(getString(R.string.online))){
+                    onlineIcon.setVisibility(View.VISIBLE);
                 }
             }
         });
+
+        Utils.loadProfilePicture(this,profilePicture,userId,100,100);
     }
 
     private void initializeVariables() {
@@ -155,6 +141,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         username = findViewById(R.id.userName);
         isTyping = findViewById(R.id.isTyping);
         profilePicture = findViewById(R.id.profilePicture);
+        onlineIcon = findViewById(R.id.onlineIcon);
         messageInput = findViewById(R.id.messageInput);
         messageInput.addTextChangedListener(this);
         imageFromGallery = findViewById(R.id.attachImageFromGallery);
@@ -165,11 +152,11 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         sendMessage.setOnClickListener(this);
 
         chatView = findViewById(R.id.chatView);
+        chatView.setHasFixedSize(true);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
         chatView.setLayoutManager(layoutManager);
-
-        adapter = new ChatAdapter(this,messageList);
+        adapter = new ChatAdapter(this,messageList,this);
         chatView.setAdapter(adapter);
 
         api = RetrofitClient.getRetrofit("https://fcm.googleapis.com/").create(FCMAPI.class);
@@ -182,7 +169,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 sendTextMessage();
                 break;
             case R.id.attachImageFromGallery:
-                getImageFromGallery();
+                uploadFromGallery();
                 break;
             case R.id.attachImageFromCamera:
                 askForPermissions();
@@ -209,40 +196,52 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void getImageFromCamera() {
-        Intent photoPickerIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        Intent intent = new Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA);
         cameraImageUri = this.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,new ContentValues());
-        photoPickerIntent.putExtra(MediaStore.EXTRA_OUTPUT,cameraImageUri);
-        startActivityForResult(photoPickerIntent,IMAGE_FROM_CAMERA);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT,cameraImageUri);
+        startActivityForResult(intent,IMAGE_FROM_CAMERA);
     }
 
-    private void getImageFromGallery() {
-        Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        photoPickerIntent.setType("image/*");
-        photoPickerIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        startActivityForResult(photoPickerIntent, IMAGE_FROM_GALLERY);
+    private void uploadFromGallery() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] {"image/*", "video/*"});
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        startActivityForResult(intent, FROM_GALLERY);
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK){
-            if (requestCode == IMAGE_FROM_GALLERY){
-                uploadImage(data.getData());
+            if (requestCode == FROM_GALLERY){
+                cameraImageUri = data.getData();
             }
             if (requestCode == IMAGE_FROM_CAMERA){
-                uploadImage(cameraImageUri);
+                uploadData(cameraImageUri);
             }
         }
     }
 
-    private void uploadImage(Uri data) {
+    private void uploadData(Uri data) {
+        final String type;
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.uploading));
+        progressDialog.show();
+
+        if (getContentResolver().getType(data).contains("video")){
+            type = "video";
+        } else {
+            type = "image";
+        }
         final String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
         DatabaseHelper.addChatImage(currentUserId.concat(date), data, new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
                 if (object != null){
                     String downloadUri = object.toString();
-                    chatRoom.addMessage(new Message(currentUserId,userId,downloadUri,date,"image",false));
+                    chatRoom.addMessage(new Message(currentUserId,userId,downloadUri,date,type,false)); //todo
                     DatabaseHelper.addMessage(chatId,chatRoom.getMessages());
+                    progressDialog.dismiss();
                 }
             }
         });
@@ -272,25 +271,26 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             chatRoom.addMessage(new Message(currentUserId,userId,message,date,"text",false));
             DatabaseHelper.addMessage(chatId,chatRoom.getMessages()); //todo
-            messageInput.setText(null);
             adapter.notifyDataSetChanged();
+
+            DatabaseHelper.getUserData(currentUserId, new FirebaseCallback() {
+                @Override
+                public void onCallback(Object object) {
+                    User user = (User) object;
+                    if (notify){
+                        NotificationData notificationData = new NotificationData(userId,"New message",user.getName()+": "+message,R.drawable.ic_launcher_background);
+                        sendNotification(userId,notificationData);
+                    }
+                    notify = false;
+                }
+            });
         }
 
-        DatabaseHelper.getUserData(currentUserId, new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                User user = (User) object;
-                if (notify){
-                    NotificationData notificationData = new NotificationData(userId,"New message",user.getName()+": "+message,R.drawable.ic_launcher_background);
-                    sendNotification(userId,notificationData);
-                }
-                notify = false;
-            }
-        });
+        messageInput.setText(null);
     }
 
     private void sendNotification(final String userId, final NotificationData notificationData) {
-        DatabaseHelper.tokensReference.orderByKey().equalTo(userId).addValueEventListener(new ValueEventListener() {
+        /*DatabaseHelper.tokensReference.orderByKey().equalTo(userId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot tokenData : dataSnapshot.getChildren()){
@@ -314,7 +314,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        });
+        });*/
     }
 
     private void getMessages(){
@@ -353,5 +353,24 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void afterTextChanged(Editable s) {
 
+    }
+
+    @Override
+    public void onSharedPostClick(int position) {
+        String postId = messageList.get(position).getContent();
+        DatabaseHelper.newsReference.child(postId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                News news = dataSnapshot.getValue(News.class);
+                Intent openDetails = new Intent(getBaseContext(), NewsDetailsActivity.class);
+                openDetails.putExtra("selectedNews", news);
+                startActivity(openDetails);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 }

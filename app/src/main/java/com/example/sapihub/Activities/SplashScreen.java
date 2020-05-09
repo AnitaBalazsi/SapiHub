@@ -1,6 +1,8 @@
 package com.example.sapihub.Activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.ProgressBar;
 
@@ -10,6 +12,7 @@ import com.example.sapihub.R;
 
 public class SplashScreen extends AppCompatActivity {
     private ProgressBar progressBar;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,6 +21,17 @@ public class SplashScreen extends AppCompatActivity {
 
         progressBar = findViewById(R.id.progressBar);
         displaySplashScreen();
+    }
+
+    private void checkUserData() {
+        sharedPreferences = getSharedPreferences("UserData", Context.MODE_PRIVATE);
+        if (sharedPreferences.getString("username", null) != null){
+            Intent intent = new Intent(SplashScreen.this, HomeActivity.class);
+            startActivity(intent);
+        } else {
+            Intent intent = new Intent(SplashScreen.this, LoginActivity.class);
+            startActivity(intent);
+        }
     }
 
     private void displaySplashScreen() {
@@ -32,8 +46,7 @@ public class SplashScreen extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
-                Intent intent = new Intent(SplashScreen.this, LoginActivity.class);
-                startActivity(intent);
+                checkUserData();
                 finish();
             }
         }).start();

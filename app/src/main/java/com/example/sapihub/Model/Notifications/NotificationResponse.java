@@ -1,16 +1,16 @@
 package com.example.sapihub.Model.Notifications;
 
 public class NotificationResponse {
-    private String succes;
+    private String success;
 
     public NotificationResponse() {
     }
 
-    public NotificationResponse(String succes) {
-        this.succes = succes;
+    public NotificationResponse(String success) {
+        this.success = success;
     }
 
-    public String getSucces() {
-        return succes;
+    public String getSuccess() {
+        return success;
     }
 }

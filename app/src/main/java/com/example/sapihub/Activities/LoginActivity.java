@@ -20,10 +20,10 @@ import androidx.core.content.ContextCompat;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.MoodleAPI;
+import com.example.sapihub.Helpers.RetrofitClient;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Token;
 import com.example.sapihub.Model.User;
-import com.example.sapihub.Helpers.RetrofitClient;
 import com.example.sapihub.R;
 
 import java.time.Year;
@@ -114,6 +114,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 showAddDataDialog();
                             } else {
                                 Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
                             }
                         }
@@ -136,7 +137,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
 
     private void showAddDataDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this,R.style.AlertDialogTheme);
         dialogView = this.getLayoutInflater().inflate(R.layout.login_dialog_layout,null);
         builder.setView(dialogView);
         builder.setCancelable(false);
@@ -231,6 +232,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View v) {
+
+        Utils.hideKeyboard(this);
         logIn();
     }
 }

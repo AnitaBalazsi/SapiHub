@@ -14,8 +14,10 @@
     <string name="uploading">Feltöltés…</string>
     <string name="news">Hírek</string>
     <string name="deadlines">Határidők</string>
+    <string name="logOut">Kijelentkezés</string>
     <string-array name="homeMenu">
         <item>@string/deadlines</item>
+        <item>@string/logOut</item>
         <!--
         <item>Órarend</item>
         <item>Elérhetőségek</item>
@@ -98,4 +100,11 @@
     <string name="isTyping">Éppen ír…</string>
     <string name="imageSent">Fényképet küldtél</string>
     <string name="imageReceived">fényképet küldött</string>
+    <string name="postSent">Megosztottál egy bejegyzést</string>
+    <string name="postReceived">megosztott egy bejegyzést</string>
+    <string name="videoSent">Videót küldtél</string>
+    <string name="videoReceived">videót küldött</string>
+    <string name="users">Felhasználók</string>
+    <string name="online">online</string>
+    <string name="offline">offline</string>
 </resources>

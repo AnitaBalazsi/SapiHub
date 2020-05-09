@@ -1,10 +1,5 @@
 package com.example.sapihub.Activities;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
@@ -19,6 +14,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -153,7 +153,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void showImageDialog(Uri imageUri) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(NewsDetailsActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(NewsDetailsActivity.this,android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen);
         final ImageView imageView = new ImageView(NewsDetailsActivity.this);
 
         loadImage(imageUri,imageView,3500,2000);

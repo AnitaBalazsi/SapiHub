@@ -1,9 +1,5 @@
 package com.example.sapihub.Activities;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -14,12 +10,20 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.sapihub.Helpers.Adapters.ImageListAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.R;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,12 +39,29 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
     private RecyclerView imageListView;
     private ImageListAdapter imageListAdapter;
     private ProgressDialog loadingDialog;
+    private News selectedNews;
+    private String newsId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_news);
         initializeVariables();
+
+        if (getIntent().hasExtra("selectedPost")){
+            selectedNews = (News) getIntent().getSerializableExtra("selectedPost");
+            loadSelectedPost(selectedNews);
+        }
+    }
+
+    private void loadSelectedPost(News news) {
+        title.setText(news.getTitle());
+        content.setText(news.getContent());
+        if (news.getImages() != null){
+            for (String imageUri : news.getImages()){
+                imageList.add(Uri.parse(imageUri));
+            }
+        }
     }
 
     private void initializeVariables() {
@@ -72,12 +93,45 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
                 getImageFromGallery();
                 break;
             case R.id.sendButton:
-                sendData();
+                if (selectedNews != null){
+                    modifyPost();
+                } else {
+                    sendData();
+                }
                 break;
             case R.id.previousPage:
                 finish();
                 break;
         }
+    }
+
+    private void modifyPost() {
+        getPostKey(new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                newsId = (String) object;
+                sendData();
+            }
+        });
+    }
+
+    private void getPostKey(final FirebaseCallback callback) {
+        DatabaseHelper.newsReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot newsData : dataSnapshot.getChildren()){
+                    News news = newsData.getValue(News.class);
+                    if (news.equals(selectedNews)){
+                        callback.onCallback(newsData.getKey());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void sendData() {
@@ -89,7 +143,11 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
 
             if (imageListAdapter.getItemCount() > 0){
                 List<String> images = new ArrayList<>();
-                DatabaseHelper.addNews(new News(newsTitle, date, newsContent, Utils.getCurrentUserToken(this), images));
+                if (newsId == null){
+                    DatabaseHelper.addNews(new News(newsTitle, date, newsContent, Utils.getCurrentUserToken(this), images));
+                } else {
+                    DatabaseHelper.modifyNews(newsId,new News(newsTitle, date, newsContent, Utils.getCurrentUserToken(this), images));
+                }
                 for (int i = 0; i < imageList.size(); i++){
                     Uri imageUri = imageList.get(i);
                     images.add(Utils.imageNameFromUri(this,imageUri));
@@ -105,7 +163,11 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
                     });
                 }
             } else {
-                DatabaseHelper.addNews(new News(newsTitle, date, newsContent, Utils.getCurrentUserToken(this), null));
+                if (newsId == null){
+                    DatabaseHelper.addNews(new News(newsTitle, date, newsContent, Utils.getCurrentUserToken(this), null));
+                } else {
+                    DatabaseHelper.modifyNews(newsId,new News(newsTitle, date, newsContent, Utils.getCurrentUserToken(this), null));
+                }
                 finish();
             }
         }

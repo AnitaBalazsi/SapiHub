@@ -113,7 +113,7 @@ public class CustomCalendar extends LinearLayout implements View.OnClickListener
     }
 
     private void showDialog(final int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),R.style.AlertDialogTheme);
         final View dialogView = ((LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.add_event_layout,null);
         builder.setView(dialogView);
 

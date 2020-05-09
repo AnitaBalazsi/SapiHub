@@ -1,6 +1,8 @@
 package com.example.sapihub.Activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +20,8 @@ import com.example.sapihub.Fragments.NewsFragment;
 import com.example.sapihub.Fragments.NotificationsFragment;
 import com.example.sapihub.Fragments.ProfileFragment;
 import com.example.sapihub.Helpers.Adapters.ViewPagerAdapter;
+import com.example.sapihub.Helpers.Database.DatabaseHelper;
+import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -36,6 +40,24 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
 
         setupViewPager();
         initializeVariables();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        DatabaseHelper.changeStatus(Utils.getCurrentUserToken(this),getString(R.string.online));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        DatabaseHelper.changeStatus(Utils.getCurrentUserToken(this),getString(R.string.offline));
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        DatabaseHelper.changeStatus(Utils.getCurrentUserToken(this),getString(R.string.offline));
     }
 
     private void initializeVariables() {
@@ -125,11 +147,20 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         String fragmentName = String.valueOf(parent.getItemAtPosition(position));
-        Bundle bundle = new Bundle();
-        bundle.putString("fragmentName",fragmentName);
+        if (fragmentName.equals(getString(R.string.logOut))){
+            SharedPreferences sharedPreferences = getSharedPreferences("UserData", Context.MODE_PRIVATE);
+            sharedPreferences.edit().remove("username").apply();
+            sharedPreferences.edit().remove("password").apply();
+            startActivity(new Intent(HomeActivity.this,LoginActivity.class));
+            //todo login to bottom
 
-        Intent fragmentLoader = new Intent(HomeActivity.this, FragmentLoader.class);
-        fragmentLoader.putExtras(bundle);
-        startActivity(fragmentLoader);
+        } else {
+            Bundle bundle = new Bundle();
+            bundle.putString("fragmentName",fragmentName);
+
+            Intent fragmentLoader = new Intent(HomeActivity.this, FragmentLoader.class);
+            fragmentLoader.putExtras(bundle);
+            startActivity(fragmentLoader);
+        }
     }
 }

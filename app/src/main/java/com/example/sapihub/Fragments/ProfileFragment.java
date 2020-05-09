@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -22,8 +24,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Activities.NewsDetailsActivity;
 import com.example.sapihub.Helpers.Adapters.NewsListAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
@@ -117,18 +117,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
             }
         });
 
-        DatabaseHelper.getProfilePicture(Utils.getCurrentUserToken(getContext()), new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                if (object != null){
-                    Uri imageUri = (Uri) object;
-                    Glide.with(getContext()).load(imageUri.toString())
-                            .apply(new RequestOptions().override(600, 600))
-                            .circleCrop()
-                            .into(profilePicture);
-                }
-            }
-        });
+        Utils.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),350,350);
     }
 
     private void initializeVariables() {
@@ -213,7 +202,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
     }
 
     private void showChangePictureDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),R.style.AlertDialogTheme);
         String[] animals = {getString(R.string.deleteProfilePicture), getString(R.string.changeProfilePicture)};
         builder.setItems(animals, new DialogInterface.OnClickListener() {
             @Override
@@ -233,7 +222,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
     }
 
     private void showConfirmationDialog() {
-        new AlertDialog.Builder(getContext())
+        new AlertDialog.Builder(getContext(),R.style.AlertDialogTheme)
                 .setTitle(getString(R.string.deleteProfilePicture))
                 .setMessage(getString(R.string.confirmImageDeletion))
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -242,8 +231,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
                         DatabaseHelper.deleteProfilePicture(Utils.getCurrentUserToken(getContext()), new FirebaseCallback() {
                             @Override
                             public void onCallback(Object object) {
-                                //delete image from imageview
-                                profilePicture.setImageDrawable(getContext().getDrawable(R.drawable.ic_image_black_24dp));
+                                //refresh imageview
+                                Utils.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),350,350);
                             }
                         });
                     }})
@@ -271,15 +260,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
                 @Override
                 public void onCallback(Object object) {
                     loadingDialog.dismiss();
-                    try {
-                        // Setting image on image view using Bitmap
-                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), imagePath);
-                        profilePicture.setImageBitmap(bitmap);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    Utils.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),400,400);
                 }
             });
 
@@ -290,7 +271,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
     public void onNewsClick(int position, String TAG) {
         News selectedNews = new News();
         switch (TAG){
-            case "MyNews":
+            case "MyNews": //todo
                 selectedNews = newsList.get(position);
                 break;
             case "SavedNews":
@@ -326,5 +307,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
     @Override
     public void onSendComment(View itemView, int position, String tag) {
         //todo
+    }
+
+    @Override
+    public void onSharePost(int position) {
+
     }
 }

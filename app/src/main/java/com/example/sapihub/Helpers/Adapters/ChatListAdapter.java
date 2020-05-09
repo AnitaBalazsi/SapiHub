@@ -2,7 +2,6 @@ package com.example.sapihub.Helpers.Adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,8 +13,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
@@ -54,27 +51,24 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ListVi
         final Message lastMessage = chatRoom.getMessages().get(chatRoom.getMessages().size() - 1);
 
         String userId = getUserId(position);
-        getUserName(userId, new FirebaseCallback() {
+        getUser(userId, new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
-                holder.userName.setText(userName);
-                if (lastMessage.getType().equals("text")){
-                    holder.lastMessage.setText(lastMessage.getContent());
-                } else {
-                    if (lastMessage.getSender().equals(currentUser)){
-                        holder.lastMessage.setText(context.getString(R.string.imageSent));
-                    } else {
-                        holder.lastMessage.setText(userName.concat(" ").concat(context.getString(R.string.imageReceived)));
-                    }
+                User user = (User) object;
+                holder.userName.setText(user.getName());
+                loadLastMessage(lastMessage,holder);
+                if (user.getStatus().equals(context.getString(R.string.online))){
+                    holder.onlineIcon.setVisibility(View.VISIBLE);
                 }
             }
         });
-        loadProfileImage(holder.userProfile,userId,150,150);
+
+        Utils.loadProfilePicture(context,holder.userProfile,userId,150,150);
 
         holder.messageDate.setText(lastMessage.getDate());  //todo format date
         if (lastMessage.getSender().equals(currentUser) && lastMessage.isSeen()){
             //appears receiver's image when seen
-            loadProfileImage(holder.notificationImage,userId,50,50);
+            Utils.loadProfilePicture(context,holder.notificationImage,userId,50,50);
         }
 
         if (!lastMessage.getSender().equals(currentUser) && !lastMessage.isSeen()){
@@ -90,19 +84,33 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ListVi
         }
     }
 
-    private void loadProfileImage(final ImageView imageView, String userId, final int width, final int height){
-        DatabaseHelper.getProfilePicture(userId, new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                if (object != null){
-                    Uri imageUri = (Uri) object;
-                    Glide.with(context).load(imageUri.toString())
-                            .circleCrop()
-                            .apply(new RequestOptions().override(width, height))
-                            .into(imageView);
+    private void loadLastMessage(Message lastMessage, ListViewHolder holder) {
+        switch (lastMessage.getType()){
+            case "text":
+                holder.lastMessage.setText(lastMessage.getContent());
+                break;
+            case "image":
+                if (lastMessage.getSender().equals(currentUser)){
+                    holder.lastMessage.setText(context.getString(R.string.imageSent));
+                } else {
+                    holder.lastMessage.setText(userName.concat(" ").concat(context.getString(R.string.imageReceived)));
                 }
-            }
-        });
+                break;
+            case "video":
+                if (lastMessage.getSender().equals(currentUser)){
+                    holder.lastMessage.setText(context.getString(R.string.videoSent));
+                } else {
+                    holder.lastMessage.setText(userName.concat(" ").concat(context.getString(R.string.videoReceived)));
+                }
+                break;
+            case "sharedPost":
+                if (lastMessage.getSender().equals(currentUser)){
+                    holder.lastMessage.setText(context.getString(R.string.postSent));
+                } else {
+                    holder.lastMessage.setText(userName.concat(" ").concat(context.getString(R.string.postReceived)));
+                }
+                break;
+        }
     }
 
     private String getUserId(int position) {
@@ -114,13 +122,12 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ListVi
         return null;
     }
 
-    private void getUserName(String userId, final FirebaseCallback callback) {
+    private void getUser(String userId, final FirebaseCallback callback) {
         DatabaseHelper.getUserData(userId, new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
                 User user = (User) object;
-                userName = user.getName();
-                callback.onCallback(null);
+                callback.onCallback(user);
             }
         });
     }
@@ -133,11 +140,12 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ListVi
     public class ListViewHolder extends RecyclerView.ViewHolder {
         LinearLayout itemLayout;
         TextView userName, lastMessage, messageDate;
-        ImageView userProfile, notificationImage;
+        ImageView userProfile, notificationImage, onlineIcon;
         public ListViewHolder(@NonNull View itemView, final ContactClickListener contactClickListener) {
             super(itemView);
 
             userName = itemView.findViewById(R.id.userName);
+            onlineIcon = itemView.findViewById(R.id.onlineIcon);
             lastMessage = itemView.findViewById(R.id.lastMessage);
             userProfile = itemView.findViewById(R.id.profilePicture);
             messageDate = itemView.findViewById(R.id.messageDate);

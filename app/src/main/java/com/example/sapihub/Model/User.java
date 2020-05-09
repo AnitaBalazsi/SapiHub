@@ -8,6 +8,7 @@ public class User {
     private String degree;
     private String studyYear;
     private String typingTo;
+    private String status;
 
     public User() {
     }
@@ -43,6 +44,14 @@ public class User {
 
     public String getTypingTo() {
         return typingTo;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public void setOccupation(String occupation) {
