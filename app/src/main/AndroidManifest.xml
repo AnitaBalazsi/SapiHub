@@ -18,7 +18,8 @@
         <activity android:name=".Activities.ChatActivity"></activity>
         <activity android:name=".Activities.UserProfileActivity" />
         <activity android:name=".Activities.NewsDetailsActivity" />
-        <activity android:name=".Activities.AddNewsActivity" />
+        <activity android:name=".Activities.AddNewsActivity"
+            android:windowSoftInputMode="adjustPan"/>
         <activity
             android:name=".Activities.FragmentLoader"
             android:windowSoftInputMode="stateVisible|adjustPan" />

@@ -144,6 +144,7 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
 
     }
 
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         String fragmentName = String.valueOf(parent.getItemAtPosition(position));
@@ -152,7 +153,7 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
             sharedPreferences.edit().remove("username").apply();
             sharedPreferences.edit().remove("password").apply();
             startActivity(new Intent(HomeActivity.this,LoginActivity.class));
-            //todo login to bottom
+            //todo
 
         } else {
             Bundle bundle = new Bundle();

@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.sapihub.Fragments.DeadlinesFragment;
+import com.example.sapihub.Fragments.TimetableFragment;
 import com.example.sapihub.R;
 
 public class FragmentLoader extends AppCompatActivity{
@@ -23,6 +24,11 @@ public class FragmentLoader extends AppCompatActivity{
         if (fragment.equals(menuItems[0])){
             loadFragment(new DeadlinesFragment(),null);
         }
+
+        if (fragment.equals(menuItems[1])){
+            loadFragment(new TimetableFragment(), null);
+        }
+
     }
 
     @Override

@@ -34,7 +34,7 @@ public class DatabaseHelper {
     public static DatabaseReference tokensReference = FirebaseDatabase.getInstance().getReference("Tokens");
     public static DatabaseReference commentsReference = FirebaseDatabase.getInstance().getReference("Comments");
     public static StorageReference profilePictureRef = FirebaseStorage.getInstance().getReference("Profile pictures");
-    public static StorageReference newsPictureRef = FirebaseStorage.getInstance().getReference("News pictures");
+    public static StorageReference newsAttachmentsRef = FirebaseStorage.getInstance().getReference("News attachments");
     public static StorageReference chatPictureRef = FirebaseStorage.getInstance().getReference("Chat pictures");
     public static DatabaseReference chatReference = FirebaseDatabase.getInstance().getReference("ChatRooms");
 
@@ -82,8 +82,9 @@ public class DatabaseHelper {
         });
     }
 
-    public static void uploadNewsImage(Context context, String newsName, String newsDate, Uri imagePath, final FirebaseCallback callback){
-        newsPictureRef.child(newsName.concat(newsDate)).child(Utils.imageNameFromUri(context,imagePath)).putFile(imagePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+    public static void uploadNewsAttachment(Context context, String newsName, String newsDate, Uri filePath, final FirebaseCallback callback){
+        newsAttachmentsRef.child(newsName.concat(newsDate)).child(Utils.fileNameFromUri(context,filePath)).putFile(filePath)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 callback.onCallback(true);
@@ -137,8 +138,26 @@ public class DatabaseHelper {
         });
     }
 
-    public static void getNewsImage(News news, String imageName, final FirebaseCallback callback){
-        newsPictureRef.child(news.getTitle().concat(news.getDate())).child(imageName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+    public static void getNewsId(final News news, final FirebaseCallback callback) {
+        DatabaseHelper.newsReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot newsData : dataSnapshot.getChildren()){
+                    if (newsData.getValue(News.class).equals(news)){
+                        callback.onCallback(newsData.getKey());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public static void getNewsAttachment(News news, String fileName, final FirebaseCallback callback){
+        newsAttachmentsRef.child(news.getTitle().concat(news.getDate())).child(fileName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
             public void onSuccess(Uri uri) {
                 callback.onCallback(uri);
@@ -224,7 +243,7 @@ public class DatabaseHelper {
 
         if (news.getImages() != null){
             for (String imageUrl : news.getImages()){
-                newsPictureRef.child(news.getTitle().concat(news.getDate())).child(imageUrl).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                newsAttachmentsRef.child(news.getTitle().concat(news.getDate())).child(imageUrl).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
                         callback.onCallback(true);
@@ -338,6 +357,10 @@ public class DatabaseHelper {
 
     public static void changeStatus(String userId, String status){
         userReference.child(userId).child("status").setValue(status);
+    }
+
+    public static void changePostLastComment(String newsId, String lastComment){
+        newsReference.child(newsId).child("lastComment").setValue(lastComment);
     }
 }
 

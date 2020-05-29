@@ -15,11 +15,12 @@
     <string name="news">Hírek</string>
     <string name="deadlines">Határidők</string>
     <string name="logOut">Kijelentkezés</string>
+    <string name="timeTable">Órarend</string>
     <string-array name="homeMenu">
         <item>@string/deadlines</item>
+        <item>@string/timeTable</item>
         <item>@string/logOut</item>
         <!--
-        <item>Órarend</item>
         <item>Elérhetőségek</item>
         <item>Tanévszerkezet</item>
         <item>Határidők</item>
@@ -33,6 +34,7 @@
     <string name="addImage">Kép hozzáadása</string>
     <string name="send">Küldés</string>
     <string name="emptyField">A mező nem lehet üres!</string>
+    <string name="commentSent">Hozzászólás elküldve</string>
     <string name="monday">H</string>
     <string name="tuesday">K</string>
     <string name="wednesday">SZE</string>
@@ -41,17 +43,18 @@
     <string name="saturday">SZO</string>
     <string name="sunday">V</string>
     <string name="cancel">Mégse</string>
+    <string name="save">Mentés</string>
     <string name="events">Események:</string>
     <string name="upcomingEvent">Közelgő esemény:</string>
     <string name="addProfileData">Profil adatok megadása</string>
-    <string name="teacher">Tanár</string>
-    <string name="student">Diák</string>
+    <string name="teacher">Oktató</string>
+    <string name="student">Hallgató</string>
     <string-array name="departmentList">
-        <item>Alkalmazott nyelvészeti</item>
-        <item>Alkalmazott társadalomtudományok</item>
-        <item>Gépészmérnöki</item>
-        <item>Matematika - Informatika</item>
-        <item>Villamosmérnöki</item>
+        <item>Alkalmazott nyelvészeti tanszék</item>
+        <item>Alkalmazott társadalomtudományok tanszék</item>
+        <item>Gépészmérnöki tanszék</item>
+        <item>Matematika - Informatika tanszék</item>
+        <item>Villamosmérnöki tanszék</item>
     </string-array>
     <string-array name="degreeList">
         <item>Automatika és alkalmazott informatika</item>
@@ -64,10 +67,14 @@
         <item>Mechatronika</item>
         <item>Számítástechnika</item>
         <item>Tájépítészet</item>
+        <item>Fejlett mechatronikai rendszerek szak</item>
+        <item>Növényorvos</item>
+        <item>Számítógépes irányítási rendszerek szak</item>
+        <item>Szoftverfejlesztés szak</item>
     </string-array>
     <string name="wrongYearInput">A megadott évszám nem megfelelő!</string>
     <string name="inputError">A mezők kitöltése kötelező!</string>
-    <string name="confirmProfileData">A megadott adatok később nem változathatóak meg. Biztos elküldi?</string>
+    <string name="confirmProfileData">A megadott adatok a későbbiekben nem módosíthatóak. Biztosan elküldi?</string>
     <string name="deleteProfilePicture">Profilkép törlése</string>
     <string name="changeProfilePicture">Profilkép módosítása</string>
     <string name="selectPicture">"Kép kiválasztása"</string>
@@ -107,4 +114,27 @@
     <string name="users">Felhasználók</string>
     <string name="online">online</string>
     <string name="offline">offline</string>
+    <string name="attachFile">Fájl csatolása</string>
+    <string name="createPoll">Szavazás létrehozása</string>
+    <string name="exitAddNews">Biztosan elveti a módosításokat?</string>
+    <string name="discardChanges">Módosítások elvetése</string>
+    <string name="pollOption">Válaszlehetőség </string>
+    <string name="deletePoll">Szavazás törlése</string>
+    <string name="modifyPoll">Szavazás módosítása</string>
+    <string name="pollError">Kérdés és min. 2 válaszlehetőség megadása kötelező!</string>
+    <string name="addOption">+ Válaszlehetőség hozzáadása</string>
+    <string name="confirmPollDeletion">Biztosan törli a szavazást?</string>
+    <string name="newActivityPost">Új aktivitás</string>
+    <string name="lastPost">Legutóbbi bejegyzések</string>
+    <string-array name="filterNews">
+        <item>@string/lastPost</item>
+        <item>@string/newActivityPost</item>
+    </string-array>
+    <string name="publicCaption">Nyilvános</string>
+    <string name="captionError">Min. 1 címke megadása kötelező!</string>
+    <string name="downloading">Letöltés folyamatban…</string>
+    <string name="sendForward">Továbbítás</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

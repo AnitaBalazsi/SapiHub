@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
@@ -23,15 +22,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Helpers.Adapters.CommentListAdapter;
+import com.example.sapihub.Helpers.Adapters.FileListAdapter;
+import com.example.sapihub.Helpers.Adapters.PollListAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Comment;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.R;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -45,7 +48,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
     private ImageView sendComment;
     private EditText commentInput;
     private LinearLayout imageContainer, commentLayout, viewComments;
-    private RecyclerView commentView;
+    private RecyclerView commentView, pollView, fileView;
     private CommentListAdapter adapter;
     private List<Comment> commentList = new ArrayList<>();
     private String newsKey;
@@ -102,16 +105,16 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
     private void loadImages() {
         if (selectedNews.getImages() != null){
             for (String imageName : selectedNews.getImages()){
-                DatabaseHelper.getNewsImage(selectedNews, imageName, new FirebaseCallback() {
+                DatabaseHelper.getNewsAttachment(selectedNews, imageName, new FirebaseCallback() {
                     @Override
                     public void onCallback(final Object object) {
                         if (object != null){
                             ImageView imageView = addImageView();
-                            loadImage((Uri) object, imageView,700,500);
+                            Utils.loadImage(NewsDetailsActivity.this,(Uri) object, imageView,700,500);
                             imageView.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    showImageDialog((Uri) object);
+                                    Utils.showImageDialog(NewsDetailsActivity.this, (Uri) object);
                                 }
                             });
                         }
@@ -135,7 +138,8 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
         commentInput = findViewById(R.id.commentInput);
         sendComment = findViewById(R.id.sendCommentButton);
         sendComment.setOnClickListener(this);
-
+        pollView = findViewById(R.id.pollView);
+        fileView = findViewById(R.id.fileAttachments);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setReverseLayout(true);
@@ -144,24 +148,44 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
         adapter = new CommentListAdapter(this,commentList,this);
         commentView.setAdapter(adapter);
 
+        pollView.setLayoutManager(new LinearLayoutManager(this));
+        if (selectedNews.getPolls() != null){
+            pollView.setAdapter(new PollListAdapter(this, selectedNews.getPolls(), Utils.VIEW_POLL, selectedNews));
+            pollView.setVisibility(View.VISIBLE);
+        } else {
+            pollView.setVisibility(View.GONE);
+        }
+
+        fileView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL,false));
+        if (selectedNews.getFiles() != null){
+            final List<Uri> files = new ArrayList<>();
+            for (String fileUri : selectedNews.getFiles()){
+                files.add(Uri.parse(fileUri));
+            }
+            fileView.setAdapter(new FileListAdapter(files, this, null, new FileListAdapter.ListViewHolder.FileClickListener() {
+                @Override
+                public void onDeleteFile(int position) {
+                }
+
+                @Override
+                public void onFileClick(final int position) {
+                    StorageReference ref = DatabaseHelper.newsAttachmentsRef.child(selectedNews.getTitle().concat(selectedNews.getDate())).child(selectedNews.getFiles().get(position));
+                    ref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            Utils.downloadFile(NewsDetailsActivity.this,selectedNews.getFiles().get(position),uri);
+                        }
+                    });
+                }
+            }));
+        }
+
         DatabaseHelper.getNewsKey(selectedNews, new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
                 newsKey = (String) object;
             }
         });
-    }
-
-    private void showImageDialog(Uri imageUri) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(NewsDetailsActivity.this,android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen);
-        final ImageView imageView = new ImageView(NewsDetailsActivity.this);
-
-        loadImage(imageUri,imageView,3500,2000);
-
-        builder.setView(imageView);
-        AlertDialog imageDialog = builder.create();
-        imageDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        imageDialog.show();
     }
 
     private void loadData() {
@@ -177,12 +201,6 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
         final ImageView imageView = new ImageView(this);
         imageContainer.addView(imageView);
         return imageView;
-    }
-
-    private void loadImage(Uri uri, ImageView imageView, int width, int height){
-        Glide.with(this).load(uri.toString())
-                .apply(new RequestOptions().override(width, height))
-                .into(imageView);
     }
 
     @Override

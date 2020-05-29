@@ -10,17 +10,25 @@ public class News implements Serializable {
     private String date;
     private String content;
     private String author;
+    private String lastComment;
     private List<String> images;
+    private List<String> files;
+    private List<Poll> polls;
+    private List<String> captions;
 
     public News() {
     }
 
-    public News(String title, String date, String content, String author, List<String> images) {
+    public News(String title, String date, String content, String author, String lastComment, List<String> images, List<String> files, List<Poll> polls, List<String> captions) {
         this.title = title;
         this.date = date;
         this.content = content;
         this.author = author;
+        this.lastComment = lastComment;
         this.images = images;
+        this.files = files;
+        this.polls = polls;
+        this.captions = captions;
     }
 
     public String getTitle() {
@@ -41,6 +49,18 @@ public class News implements Serializable {
 
     public List<String> getImages() {
         return images;
+    }
+
+    public List<String> getFiles() {
+        return files;
+    }
+
+    public List<Poll> getPolls() {
+        return polls;
+    }
+
+    public List<String> getCaptions() {
+        return captions;
     }
 
     @Override

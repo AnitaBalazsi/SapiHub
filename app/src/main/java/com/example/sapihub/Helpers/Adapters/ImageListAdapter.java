@@ -1,16 +1,22 @@
 package com.example.sapihub.Helpers.Adapters;
 
 import android.content.Context;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.R;
 
 import java.io.IOException;
@@ -38,12 +44,10 @@ public class ImageListAdapter extends RecyclerView.Adapter<ImageListAdapter.List
 
     @Override
     public void onBindViewHolder(@NonNull ListViewHolder holder, int position) {
-        try {
-            holder.image.setImageBitmap(MediaStore.Images.Media.getBitmap(context.getContentResolver(), images.get(position)));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Glide.with(context).load(images.get(position).toString())
+                    .apply(new RequestOptions().override(500, 300))
+                    .centerCrop()
+                    .into(holder.image);
     }
 
     @Override
@@ -62,15 +66,25 @@ public class ImageListAdapter extends RecyclerView.Adapter<ImageListAdapter.List
             image = itemView.findViewById(R.id.image);
             deleteImage = itemView.findViewById(R.id.deleteImage);
             deleteImage.setOnClickListener(this);
+            image.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            imageClickListener.onDeleteImage(getAdapterPosition());
+            switch (v.getId()){
+                case R.id.deleteImage:
+                    imageClickListener.onDeleteImage(getAdapterPosition());
+                    break;
+                case R.id.image:
+                    imageClickListener.onViewImage(getAdapterPosition());
+                    break;
+            }
+
         }
 
         public interface ImageClickListener{
             void onDeleteImage(int position);
+            void onViewImage(int position);
         }
     }
 }

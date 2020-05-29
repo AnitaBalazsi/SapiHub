@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/container"
+    android:clickable="true"
+    android:layout_marginBottom="15dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:clickable="false"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/radioButton"
+            android:visibility="gone"
+            android:clickable="false"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <EditText
+            android:id="@+id/optionText"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:hint="@string/pollOption"
+            android:inputType="textMultiLine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <FrameLayout
+            android:clickable="false"
+            android:layout_weight="1"
+            android:layout_marginTop="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:id="@+id/users"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:visibility="gone"
+                android:layout_marginTop="5dp"
+                android:gravity="end"
+                android:layout_height="wrap_content"/>
+
+            <ImageView
+                android:id="@+id/deleteOption"
+                android:layout_gravity="end"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_close"/>
+        </FrameLayout>
+    </LinearLayout>
+
+     <View
+         android:clickable="false"
+            android:id="@+id/percentageBar"
+            android:layout_marginEnd="5dp"
+            android:layout_height="10dp"
+            android:visibility="gone"
+            android:layout_width="1000dp"
+            android:layout_weight="1"
+            android:background="@color/colorGreen"/>
+
+</LinearLayout>

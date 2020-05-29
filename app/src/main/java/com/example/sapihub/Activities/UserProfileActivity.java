@@ -40,9 +40,9 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_profile);
 
-        initializeVariables();
-        getUserData();
-        getData();
+       // initializeVariables();
+       // getUserData();
+       // getData();
     }
 
     private void getUserData() {
@@ -81,7 +81,7 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
         newsLayout.setReverseLayout(true);
         newsLayout.setStackFromEnd(true);
         newsListView.setLayoutManager(newsLayout);
-        newsAdapter = new NewsListAdapter("MyNews",newsList,this,null);
+       // newsAdapter = new NewsListAdapter("MyNews",newsList,this,null);
         newsListView.setAdapter(newsAdapter);
 
         loadingDialog = new ProgressDialog(this, R.style.ProgressDialog);

@@ -46,7 +46,7 @@ import static android.app.Activity.RESULT_OK;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ProfileFragment extends Fragment implements View.OnClickListener, NewsListAdapter.ListViewHolder.NewsClickListener {
+public class ProfileFragment extends Fragment implements View.OnClickListener {
     private TextView username, department, degree, studyYear, myNewsText, savedNewsText;
     private ImageView profilePicture;
     private ProgressDialog loadingDialog;
@@ -73,14 +73,14 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        initializeVariables();
-        getUserData();
-        getSavedPostList(new FirebaseCallback() {
+       // initializeVariables();
+       // getUserData();
+       /* getSavedPostList(new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
                 getData();
             }
-        });
+        });*/
     }
 
     private void getSavedPostList(final FirebaseCallback callback) {
@@ -102,13 +102,15 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
 
     private void getUserData() {
         loadingDialog.show();
-        DatabaseHelper.getUserData(Utils.getCurrentUserToken(getContext()), new FirebaseCallback() {
+        final String student = getActivity().getResources().getString(R.string.student);
+        DatabaseHelper.getUserData(Utils.getCurrentUserToken(getActivity()), new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
                 User user = (User) object;
                 username.setText(user.getName());
                 department.setText(user.getDepartment());
-                if (user.getOccupation().equals(getString(R.string.student))){
+
+                if (user.getOccupation().equals(student)){
                     degree.setVisibility(View.VISIBLE);
                     degree.setText(user.getDegree());
                     studyYear.setVisibility(View.VISIBLE);
@@ -154,14 +156,14 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
         newsLayout.setReverseLayout(true);
         newsLayout.setStackFromEnd(true);
         newsListView.setLayoutManager(newsLayout);
-        newsAdapter = new NewsListAdapter("MyNews",newsList,getContext(),this);
+        //newsAdapter = new NewsListAdapter("MyNews",newsList,getContext(),this);
         newsListView.setAdapter(newsAdapter);
 
         LinearLayoutManager savedNewsLayout = new LinearLayoutManager(getContext());
         savedNewsLayout.setReverseLayout(true);
         savedNewsLayout.setStackFromEnd(true);
         savedNewsListView.setLayoutManager(savedNewsLayout);
-        savedNewsAdapter = new NewsListAdapter("SavedNews",savedNewsList,getContext(),this);
+        //savedNewsAdapter = new NewsListAdapter("SavedNews",savedNewsList,getContext(),this);
         savedNewsListView.setAdapter(savedNewsAdapter);
 
         loadingDialog = new ProgressDialog(getContext(), R.style.ProgressDialog);
@@ -170,13 +172,14 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
     }
 
     private void getData(){
+        final String userId = Utils.getCurrentUserToken(getContext());
         DatabaseHelper.newsReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 newsList.clear();
                 for (DataSnapshot newsData : dataSnapshot.getChildren()){
                     News news = newsData.getValue(News.class);
-                    if (news.getAuthor().equals(Utils.getCurrentUserToken(getContext()))){
+                    if (news.getAuthor().equals(userId)){
                         newsList.add(news);
                         newsAdapter.notifyDataSetChanged();
                     }
@@ -267,50 +270,4 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, N
         }
     }
 
-    @Override
-    public void onNewsClick(int position, String TAG) {
-        News selectedNews = new News();
-        switch (TAG){
-            case "MyNews": //todo
-                selectedNews = newsList.get(position);
-                break;
-            case "SavedNews":
-                selectedNews = savedNewsList.get(position);
-                break;
-        }
-
-        Intent openDetails = new Intent(getActivity(), NewsDetailsActivity.class);
-        openDetails.putExtra("selectedNews", selectedNews);
-        startActivity(openDetails);
-    }
-
-    @Override
-    public void onProfileClick(int position) {
-
-    }
-
-    @Override
-    public void onMoreOptionsClick(View itemView, int position) {
-        //todo options
-    }
-
-    @Override
-    public void onSavePost(View itemView, int position) {
-            //todo
-    }
-
-    @Override
-    public void onWriteComment(View itemView, int position) {
-            //todo
-    }
-
-    @Override
-    public void onSendComment(View itemView, int position, String tag) {
-        //todo
-    }
-
-    @Override
-    public void onSharePost(int position) {
-
-    }
 }

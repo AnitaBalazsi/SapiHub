@@ -38,7 +38,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ListVi
 
     @Override
     public void onBindViewHolder(@NonNull ListViewHolder holder, int position) {
-        Utils.loadProfilePicture(context,holder.profilePicture,userList.get(position).getToken(),150,150);
+        Utils.loadProfilePicture(context,holder.profilePicture,userList.get(position).getToken(),100,100);
         holder.username.setText(userList.get(position).getName());
         if (userList.get(position).getDegree() != null){
             holder.degree.setText(userList.get(position).getDegree());

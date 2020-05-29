@@ -7,10 +7,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 
@@ -122,7 +125,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 } else {
                     loadingDialog.dismiss();
                     Utils.showSnackbar(
-                            findViewById(android.R.id.content),
+                            findViewById(R.id.loginContainer),
                             getString(R.string.loginError),
                             ContextCompat.getColor(getBaseContext(), R.color.colorRed));
                 }
@@ -130,22 +133,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             @Override
             public void onFailure(Call<Token> call, Throwable t) {
-                //TODO
+                Log.d("LoginFailure",t.getMessage());
             }
         });
     }
 
 
     private void showAddDataDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this,R.style.AlertDialogTheme);
+        AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this,R.style.AlertDialogTheme);
         dialogView = this.getLayoutInflater().inflate(R.layout.login_dialog_layout,null);
         builder.setView(dialogView);
         builder.setCancelable(false);
+        addDialogSpinners(dialogView);
 
         yearInput = dialogView.findViewById(R.id.yearInput);
-        departmentInput = dialogView.findViewById(R.id.departmentInput);
-        degreeInput = dialogView.findViewById(R.id.degreeInput);
-
         radioGroup = dialogView.findViewById(R.id.radioGroup);
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -155,8 +156,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     yearInput.setVisibility(View.VISIBLE);
                     degreeInput.setVisibility(View.VISIBLE);
                 } else {
-                    yearInput.setVisibility(View.INVISIBLE);
-                    degreeInput.setVisibility(View.INVISIBLE);
+                    yearInput.setVisibility(View.GONE);
+                    degreeInput.setVisibility(View.GONE);
                 }
             }
         });
@@ -173,6 +174,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         profileDataDialog = builder.create();
         profileDataDialog.show();
+    }
+
+    private void addDialogSpinners(View dialogView) {
+        LinearLayout spinnerLayout = dialogView.findViewById(R.id.spinners);
+
+        ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(LoginActivity.this, android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.departmentList));
+        departmentInput = new Spinner(LoginActivity.this, Spinner.MODE_DIALOG);
+        departmentInput.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        departmentInput.setAdapter(departmentAdapter);
+        spinnerLayout.addView(departmentInput);
+
+        ArrayAdapter<String> degreeAdapter = new ArrayAdapter<String>(LoginActivity.this, android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.degreeList));
+        degreeInput = new Spinner(LoginActivity.this, Spinner.MODE_DIALOG);
+        degreeInput.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        degreeInput.setAdapter(degreeAdapter);
+        degreeInput.setVisibility(View.GONE);
+        spinnerLayout.addView(degreeInput);
     }
 
     private void showConfirmSendDialog() {
@@ -215,13 +233,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private boolean validateInputs() {
         if (radioGroup.getCheckedRadioButtonId() == -1){ // no option is checked
-            Utils.showSnackbar(dialogView,getString(R.string.inputError),getColor(R.color.colorRed));
+            Utils.showSnackbar(findViewById(R.id.loginContainer),getString(R.string.inputError),getColor(R.color.colorRed));
             return false;
         }
 
         String year = yearInput.getText().toString().trim();
         if (yearInput.getVisibility() == View.VISIBLE && (yearInput.length() < 4 || year.compareTo(Year.now().toString()) > 0)){
-            //if input is not a four digit number or the year is not valid
+            //if input is not a four digit number or the year is not valid (is after current year)
             yearInput.setError(getString(R.string.wrongYearInput));
             yearInput.requestFocus();
             return false;
@@ -232,7 +250,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View v) {
-
         Utils.hideKeyboard(this);
         logIn();
     }
