@@ -11,7 +11,7 @@
         android:searchIcon="@null"
         android:background="@color/colorWhite"
         android:queryHint="@string/search"
-        android:layout_margin="10dp"/>
+        android:layout_margin="5dp"/>
 
     <View
     android:layout_width="match_parent"
@@ -20,6 +20,7 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/userList"
+        android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>

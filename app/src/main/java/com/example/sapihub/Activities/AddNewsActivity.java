@@ -13,13 +13,19 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -38,13 +44,17 @@ import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.News;
+import com.example.sapihub.Model.Notifications.NotificationData;
 import com.example.sapihub.Model.Poll;
 import com.example.sapihub.Model.PollAnswer;
+import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -63,6 +73,7 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
     private Uri cameraImageUri;
     private List<Poll> polls = new ArrayList<>();
     private List<String> captionList = new ArrayList<>();
+    private int isSelected = 0;
 
     private final int GALLERY_RESULT = 1;
     private final int CAMERA_RESULT = 2;
@@ -75,12 +86,11 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
         setContentView(R.layout.activity_add_news);
 
         initializeVariables();
-        loadCaptions();
-
         if (getIntent().hasExtra("selectedPost")){
             selectedNews = (News) getIntent().getSerializableExtra("selectedPost");
             loadSelectedPost(selectedNews);
         }
+        loadCaptions();
     }
 
     private void loadSelectedPost(News news) {
@@ -133,8 +143,9 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
 
     private void loadCaptions() {
         final List<String> captions = new ArrayList<>();
+        final List<String> degreeList = Arrays.asList(getResources().getStringArray(R.array.degreeList));
         captions.add(getString(R.string.publicCaption));
-        captions.addAll(Arrays.asList(getResources().getStringArray(R.array.degreeList)));
+        captions.addAll(degreeList);
         captions.addAll(Arrays.asList(getResources().getStringArray(R.array.departmentList)));
 
         for (final String caption : captions){
@@ -156,18 +167,74 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
             textView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (captionList.contains(caption)){
-                        captionList.remove(caption);
-                        textView.setTextColor(getResources().getColor(android.R.color.darker_gray));
-                        textView.setBackground(getDrawable(R.drawable.caption_background_white));
+                    if (degreeList.contains(caption)){
+                        showCaptionDialog(textView,caption);
                     } else {
-                        captionList.add(caption);
-                        textView.setTextColor(getResources().getColor(R.color.colorWhite));
-                        textView.setBackground(getDrawable(R.drawable.caption_background_green));
+                        if (captionList.contains(caption)){
+                            captionList.remove(caption);
+                            textView.setTextColor(getResources().getColor(android.R.color.darker_gray));
+                            textView.setBackground(getDrawable(R.drawable.caption_background_white));
+                        } else {
+                            captionList.add(caption);
+                            textView.setTextColor(getResources().getColor(R.color.colorWhite));
+                            textView.setBackground(getDrawable(R.drawable.caption_background_green));
+                        }
                     }
                 }
             });
         }
+    }
+
+    private void showCaptionDialog(final TextView textView, final String caption) {
+        int year = Calendar.getInstance().get(Calendar.YEAR);
+        isSelected = 0;
+        for (String c : captionList){
+            if (c.contains(caption)){
+                isSelected++;
+            }
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this,R.style.AlertDialogTheme);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        builder.setView(layout);
+
+        for (int i = 0; i < 4; i++) {
+            CheckBox checkBox = new CheckBox(this);
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            layoutParams.setMargins(5,0,0,10);
+            checkBox.setText(String.valueOf(year - i));
+            layout.addView(checkBox);
+
+            if (captionList.contains(caption.concat(String.valueOf(year - i)))){
+                checkBox.setChecked(true);
+            } else {
+                checkBox.setChecked(false);
+            }
+
+            checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked){
+                        captionList.add(caption.concat(buttonView.getText().toString()));
+                        isSelected++;
+                    } else {
+                        captionList.remove(caption.concat(buttonView.getText().toString()));
+                        isSelected--;
+                    }
+
+                    if (isSelected > 0){
+                        textView.setTextColor(getResources().getColor(R.color.colorWhite));
+                        textView.setBackground(getDrawable(R.drawable.caption_background_green));
+                    } else {
+                        textView.setTextColor(getResources().getColor(android.R.color.darker_gray));
+                        textView.setBackground(getDrawable(R.drawable.caption_background_white));
+                    }
+                }
+            });
+        }
+
+        builder.create().show();
     }
 
     @Override
@@ -419,9 +486,35 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             if (isFinished[0] && isFinished[1]){
+                sendNotification(newsTitle);
                 finish();
             }
         }
+    }
+
+    private void sendNotification(final String newsTitle) {
+        DatabaseHelper.getUsers(this, "", new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                List<User> users = (List<User>) object;
+                for (User user : users){
+                    String caption = "";
+                    if  (captionList.contains(user.getDepartment())){
+                        caption = user.getDepartment();
+                    }
+
+                    if (user.getDegree() != null && captionList.contains(user.getDegree().concat(user.getStudyYear()))){
+                        caption = user.getDegree();
+                    }
+
+                    if (!caption.isEmpty()){
+                        caption = "(".concat(caption).concat(")");
+                        NotificationData notificationData = new NotificationData(user.getUserId().getToken(),getString(R.string.newPostNotification).concat(" ").concat(caption),newsTitle, Utils.dateToString(Calendar.getInstance().getTime()));
+                        DatabaseHelper.sendNotification(notificationData);
+                    }
+                }
+            }
+        });
     }
 
     private boolean validateInputs() {
@@ -500,17 +593,7 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void onViewImage(int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this,android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen);
-        final ImageView imageView = new ImageView(this);
-
-        Glide.with(this).load(imageList.get(position).toString())
-                .apply(new RequestOptions().override(3500, 2000))
-                .into(imageView);
-
-        builder.setView(imageView);
-        AlertDialog imageDialog = builder.create();
-        imageDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
-        imageDialog.show();
+        Utils.showImageDialog(this,imageList.get(position));
     }
 
     @Override
@@ -521,7 +604,6 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void onFileClick(int position) {
-
     }
 
     @Override

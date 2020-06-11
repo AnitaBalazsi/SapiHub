@@ -1,36 +1,30 @@
 package com.example.sapihub.Model.Notifications;
 
+import androidx.annotation.Nullable;
+
+import com.example.sapihub.Model.News;
+
 public class NotificationData {
     private String user;
     private String title;
     private String body;
-    private int icon;
-    private boolean isScheduled;
-    private String scheduledTime;
+    private String date;
 
     public NotificationData() {
 
     }
 
-    public NotificationData(String title, String body) {
+    public NotificationData(String title, String body, String date) {
         this.title = title;
         this.body = body;
+        this.date = date;
     }
 
-    public NotificationData(String user, String title, String body, int icon) {
+    public NotificationData(String user, String title, String body, String date) {
         this.user = user;
         this.title = title;
         this.body = body;
-        this.icon = icon;
-    }
-
-    public NotificationData(String user, String title, String body, int icon, boolean isScheduled, String scheduledTime) {
-        this.user = user;
-        this.title = title;
-        this.body = body;
-        this.icon = icon;
-        this.isScheduled = isScheduled;
-        this.scheduledTime = scheduledTime;
+        this.date = date;
     }
 
     public String getTitle() {
@@ -45,15 +39,20 @@ public class NotificationData {
         return user;
     }
 
-    public int getIcon() {
-        return icon;
+    public String getDate() {
+        return date;
     }
 
-    public boolean isScheduled() {
-        return isScheduled;
-    }
-
-    public String getScheduledTime() {
-        return scheduledTime;
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        NotificationData notificationData = (NotificationData) obj;
+        if (this.getClass() != obj.getClass()) return false;
+        if (this.getBody().equals(notificationData.getBody()) &&
+                this.getTitle().equals(notificationData.getTitle()) &&
+                this.getDate().equals(notificationData.getDate())){
+            return true;
+        } else {
+            return false;
+        }
     }
 }

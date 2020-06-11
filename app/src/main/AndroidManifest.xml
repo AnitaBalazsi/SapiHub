@@ -15,14 +15,16 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".Activities.ChatActivity"></activity>
+        <activity android:name=".Activities.SettingsActivity"></activity>
+        <activity android:name=".Activities.DeadlinesActivity" />
+        <activity
+            android:name=".Activities.ChatActivity"
+            android:windowSoftInputMode="adjustPan" />
         <activity android:name=".Activities.UserProfileActivity" />
         <activity android:name=".Activities.NewsDetailsActivity" />
-        <activity android:name=".Activities.AddNewsActivity"
-            android:windowSoftInputMode="adjustPan"/>
         <activity
-            android:name=".Activities.FragmentLoader"
-            android:windowSoftInputMode="stateVisible|adjustPan" />
+            android:name=".Activities.AddNewsActivity"
+            android:windowSoftInputMode="adjustPan" />
         <activity android:name=".Activities.HomeActivity" />
         <activity
             android:name=".Activities.LoginActivity"
@@ -35,19 +37,20 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".Helpers.FirebaseService"
+        <service
+            android:name=".Helpers.FirebaseService"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_SERVICE"/>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-
         <service android:name=".Helpers.FirebaseMessaging">
             <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+        <receiver android:name=".Helpers.AlarmReceiver"/>
 
         <meta-data
             android:name="preloaded_fonts"

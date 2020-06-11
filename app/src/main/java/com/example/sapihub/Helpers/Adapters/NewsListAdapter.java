@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -33,17 +34,23 @@ import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Comment;
 import com.example.sapihub.Model.News;
+import com.example.sapihub.Model.Notifications.NotificationData;
 import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.StorageReference;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import io.github.ponnamkarthik.richlinkpreview.RichLinkView;
@@ -54,12 +61,13 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
     private Context context;
     private String selectedCaption = "";
     private String searchQuery = "";
+    private ArrayList<String> savedPostList;
 
-
-    public NewsListAdapter(@NonNull FirebaseRecyclerOptions<News> options, Context context, String TAG) {
+    public NewsListAdapter(@NonNull FirebaseRecyclerOptions<News> options, ArrayList<String> savedPostList, Context context, String TAG) {
         super(options);
-        this.TAG = TAG;
         this.context = context;
+        this.savedPostList = savedPostList;
+        this.TAG = TAG;
     }
 
     public void changeCaption(String caption){
@@ -114,14 +122,8 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
         }
 
         loadAuthorData(holder, model.getAuthor());
-        Utils.loadProfilePicture(context,holder.currentUserImage,Utils.getCurrentUserToken(context),100,100);
+        DatabaseHelper.loadProfilePicture(context,holder.currentUserImage,Utils.getCurrentUserToken(context),100,100);
         checkIfSaved(holder.savePostImage, model);
-
-        if (model.getPolls() != null){
-            holder.pollLayout.setVisibility(View.VISIBLE);
-            holder.pollView.setLayoutManager(new LinearLayoutManager(context));
-            holder.pollView.setAdapter(new PollListAdapter(context,model.getPolls(),Utils.VIEW_POLL,model));
-        }
 
         if (model.getFiles() != null){
             loadFiles(holder,model);
@@ -134,17 +136,69 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
 
     @Override
     protected void onBindViewHolder(@NonNull final ListViewHolder holder, final int position, @NonNull final News model) {
-        if (selectedCaption.isEmpty()){
-            checkIfContainsQuery(holder, model);
-        } else {
-            if (model.getCaptions() != null && model.getCaptions().contains(selectedCaption)){
-                checkIfContainsQuery(holder, model);
-            } else {
-                holder.itemView.setLayoutParams(holder.params);
-            }
+        switch (TAG){
+            case Utils.MY_POST:
+                if (model.getAuthor().equals(Utils.getCurrentUserToken(context))){
+                    populateViewHolder(holder,model);
+                } else {
+                    hideItem(holder);
+                }
+                break;
+            case Utils.SAVED_POST:
+                DatabaseHelper.getNewsKey(model, new FirebaseCallback() {
+                    @Override
+                    public void onCallback(Object object) {
+                        String key = (String) object;
+                        if (savedPostList.contains(key)){
+                            populateViewHolder(holder,model);
+                        } else {
+                            hideItem(holder);
+                        }
+                    }
+                });
+                break;
+            case Utils.NEWS_FRAGMENT:
+                if (selectedCaption.isEmpty()){
+                    DatabaseHelper.getUserData(Utils.getCurrentUserToken(context), new FirebaseCallback() {
+                        @Override
+                        public void onCallback(Object object) {
+                            User user = (User) object;
+                            if (model.getCaptions() != null && checkIfRelevant(model,user)){
+                                checkIfContainsQuery(holder, model);
+                            } else {
+                                hideItem(holder);
+                            }
+                        }
+                    });
+                } else {
+                    if (model.getCaptions() != null && model.getCaptions().contains(selectedCaption)){
+                        checkIfContainsQuery(holder, model);
+                    } else {
+                        hideItem(holder);
+                    }
+                }
+                break;
+        }
+    }
+
+    private boolean checkIfRelevant(News model, User user) {
+        if (model.getAuthor().equals(user.getUserId().getToken())){
+            return true;
         }
 
+        if (model.getCaptions().contains(user.getDepartment())){
+            return true;
+        }
 
+        if (model.getCaptions().contains(user.getDegree().concat(user.getStudyYear()))){
+            return true;
+        }
+
+        if (model.getCaptions().contains(context.getString(R.string.publicCaption))){
+            return true;
+        }
+
+        return false;
     }
 
     private void checkIfContainsQuery(ListViewHolder holder, News model){
@@ -154,9 +208,16 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
             if (model.getContent().contains(searchQuery) || model.getTitle().contains(searchQuery)){
                 populateViewHolder(holder,model);
             } else {
-                holder.itemView.setLayoutParams(holder.params);
+                hideItem(holder);
             }
         }
+    }
+
+    private void hideItem(ListViewHolder holder) {
+        ViewGroup.LayoutParams layoutParams = holder.itemView.getLayoutParams();
+        layoutParams.width= 0;
+        layoutParams.height= 0;
+        holder.itemView.setLayoutParams(layoutParams);
     }
 
     private void loadFiles(ListViewHolder holder, final News model) {
@@ -270,12 +331,13 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
                     holder.commentInput.requestFocus();
                 } else {
                     String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-                    final Comment comment = new Comment(Utils.getCurrentUserToken(context),date,holder.commentInput.getText().toString().trim());
+                    final Comment comment = new Comment(Utils.getCurrentUserToken(context),date,holder.commentInput.getText().toString().trim(),null);
                     DatabaseHelper.getNewsKey(model, new FirebaseCallback() {
                         @Override
                         public void onCallback(Object object) {
                             DatabaseHelper.addComment((String) object,comment);
-                            DatabaseHelper.changePostLastComment((String) object, comment.getDate());
+                            sendNotification(model);
+
                             Toast.makeText(context,context.getString(R.string.commentSent),Toast.LENGTH_LONG).show();
                             holder.commentInput.setText(null);
                         }
@@ -291,7 +353,7 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
                     @Override
                     public void onCallback(Object object) {
                         String newsId = (String) object;
-                        Utils.shareInChat(context, newsId, "sharedPost", new FirebaseCallback() {
+                        Utils.shareInChat(context, newsId, "sharedPost", model.getCaptions(), new FirebaseCallback() {
                             @Override
                             public void onCallback(Object object) {
                                 //opens chat
@@ -300,6 +362,62 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
                                 context.startActivity(intent);
                             }
                         });
+                    }
+                });
+            }
+        });
+    }
+
+    private void sendNotification(final News selectedNews) {
+        DatabaseHelper.getUserData(Utils.getCurrentUserToken(context), new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                final User user = (User) object;
+                getCommentList(selectedNews, new FirebaseCallback() {
+                    @Override
+                    public void onCallback(Object object) {
+                        List<Comment> commentList = (List<Comment>) object;
+                        boolean containsAuthor = false;
+                        for (Comment c : commentList){
+                            if (!c.getAuthor().equals(user.getUserId().getToken())){
+                                //send notification to other commenters
+                                NotificationData notificationData = new NotificationData(c.getAuthor(),selectedNews.getTitle(),user.getName().concat(" ").concat(context.getString(R.string.commentNotification)),Utils.dateToString(Calendar.getInstance().getTime()));
+                                DatabaseHelper.sendNotification(notificationData);
+                                if (c.getAuthor().equals(selectedNews.getAuthor())){
+                                    containsAuthor = true;
+                                }
+                            }
+                        }
+
+                        //send notification to author (if the author not commented)
+                        if (!containsAuthor){
+                            NotificationData notificationData = new NotificationData(selectedNews.getAuthor(),selectedNews.getTitle(),user.getName().concat(" ").concat(context.getString(R.string.commentNotification)),Utils.dateToString(Calendar.getInstance().getTime()));
+                            DatabaseHelper.sendNotification(notificationData);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    private void getCommentList(News selectedNews, final FirebaseCallback callback) {
+        DatabaseHelper.getNewsKey(selectedNews, new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                final ArrayList<Comment> comments = new ArrayList<>();
+                DatabaseHelper.commentsReference.child((String) object).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        comments.clear();
+                        for (DataSnapshot comment : dataSnapshot.getChildren()){
+                            comments.add(comment.getValue(Comment.class));
+                        }
+                        callback.onCallback(comments);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
                     }
                 });
             }
@@ -408,7 +526,7 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
             public void onCallback(Object object) {
                 User author = (User) object;
                 holder.author.setText(author.getName());
-                Utils.loadProfilePicture(context,holder.authorImage,authorToken,130,130);
+                DatabaseHelper.loadProfilePicture(context,holder.authorImage,authorToken,130,130);
             }
         });
     }
@@ -444,19 +562,17 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
     }
 
     public static class ListViewHolder extends RecyclerView.ViewHolder {
-        public LinearLayout.LayoutParams params;
         private LinearLayout imageContainer, newsLayout;
         private TextView title, content, date, author;
         private ImageView authorImage, moreOptionsImage, savePostImage, writeCommentImage, sendComment, currentUserImage, sharePost;
         private RichLinkView richLinkView;
         private RecyclerView pollView, fileView;
         private EditText commentInput;
-        private LinearLayout pollLayout, commentLayout;
+        private LinearLayout commentLayout;
 
         private ListViewHolder(@NonNull final View itemView) {
             super(itemView);
 
-            params = new LinearLayout.LayoutParams(0, 0);
             this.imageContainer = itemView.findViewById(R.id.imageContainer);
             this.title = itemView.findViewById(R.id.title);
             this.content = itemView.findViewById(R.id.content);
@@ -474,7 +590,6 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
             this.newsLayout = itemView.findViewById(R.id.newsLayout);
             this.richLinkView = itemView.findViewById(R.id.linkView);
             this.pollView = itemView.findViewById(R.id.pollView);
-            this.pollLayout = itemView.findViewById(R.id.pollLayout);
             this.fileView = itemView.findViewById(R.id.fileAttachments);
     }}
 }

@@ -155,13 +155,14 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
             startActivity(new Intent(HomeActivity.this,LoginActivity.class));
             //todo
 
-        } else {
-            Bundle bundle = new Bundle();
-            bundle.putString("fragmentName",fragmentName);
+        }
 
-            Intent fragmentLoader = new Intent(HomeActivity.this, FragmentLoader.class);
-            fragmentLoader.putExtras(bundle);
-            startActivity(fragmentLoader);
+        if (fragmentName.equals(getString(R.string.deadlines))){
+            startActivity(new Intent(HomeActivity.this,DeadlinesActivity.class));
+        }
+
+        if (fragmentName.equals(getString(R.string.settings))){
+            startActivity(new Intent(HomeActivity.this,SettingsActivity.class));
         }
     }
 }

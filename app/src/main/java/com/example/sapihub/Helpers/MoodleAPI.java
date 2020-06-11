@@ -8,6 +8,7 @@ import retrofit2.http.Query;
 
 public interface MoodleAPI {
     String BASE_URL = "https://moodle.sapidoc.ms.sapientia.ro/";
+    String service = "moodle_mobile_app";
 
     @GET("login/token.php")
     Call<Token> loginUser(@Query("username") String username,

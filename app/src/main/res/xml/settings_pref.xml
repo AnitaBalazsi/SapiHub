@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/notifications"
+        android:layout="@layout/pref_category_text">
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/postNotification"
+            android:title="@string/postNotification"/>
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/commentNotifSetting"
+            android:title="@string/commentNotifSetting"/>
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/eventNotification"
+            android:title="@string/eventNotification"/>
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/messageNotification"
+            android:title="@string/messageNotification"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

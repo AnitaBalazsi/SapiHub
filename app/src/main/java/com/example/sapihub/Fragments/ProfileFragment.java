@@ -5,14 +5,11 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -24,7 +21,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.sapihub.Activities.NewsDetailsActivity;
 import com.example.sapihub.Helpers.Adapters.NewsListAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
@@ -32,14 +28,13 @@ import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -50,12 +45,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private TextView username, department, degree, studyYear, myNewsText, savedNewsText;
     private ImageView profilePicture;
     private ProgressDialog loadingDialog;
-    private Uri imagePath;
     private NewsListAdapter newsAdapter, savedNewsAdapter;
     private RecyclerView newsListView, savedNewsListView;
-    private List<News> newsList = new ArrayList<>(), savedNewsList = new ArrayList<>();
-    private List<String> savedNewsKeys = new ArrayList<>();
-
+    private FirebaseRecyclerOptions<News> newsList;
+    private ArrayList<String> savedNewsList = new ArrayList<>();
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -73,35 +66,38 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-       // initializeVariables();
-       // getUserData();
-       /* getSavedPostList(new FirebaseCallback() {
+        initializeVariables();
+        getUserData();
+        getData(DatabaseHelper.newsReference);
+        getSavedPosts(new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
-                getData();
+                savedNewsAdapter = new NewsListAdapter(newsList,savedNewsList,getContext(), Utils.SAVED_POST);
+                savedNewsListView.setAdapter(savedNewsAdapter);
+                savedNewsAdapter.startListening();
             }
-        });*/
+        });
     }
 
-    private void getSavedPostList(final FirebaseCallback callback) {
+    private void getSavedPosts(final FirebaseCallback callback) {
         DatabaseHelper.savedPostsReference.child(Utils.getCurrentUserToken(getContext())).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot postData : dataSnapshot.getChildren()){
-                    savedNewsKeys.add(postData.getKey());
+                savedNewsList.clear();
+                for (DataSnapshot post : dataSnapshot.getChildren()){
+                    savedNewsList.add(post.getKey());
                 }
                 callback.onCallback(null);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("getSavedPosts",databaseError.getMessage());
             }
         });
     }
 
     private void getUserData() {
-        loadingDialog.show();
         final String student = getActivity().getResources().getString(R.string.student);
         DatabaseHelper.getUserData(Utils.getCurrentUserToken(getActivity()), new FirebaseCallback() {
             @Override
@@ -119,7 +115,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        Utils.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),350,350);
+        DatabaseHelper.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),350,350);
     }
 
     private void initializeVariables() {
@@ -156,47 +152,22 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         newsLayout.setReverseLayout(true);
         newsLayout.setStackFromEnd(true);
         newsListView.setLayoutManager(newsLayout);
-        //newsAdapter = new NewsListAdapter("MyNews",newsList,getContext(),this);
-        newsListView.setAdapter(newsAdapter);
 
         LinearLayoutManager savedNewsLayout = new LinearLayoutManager(getContext());
         savedNewsLayout.setReverseLayout(true);
         savedNewsLayout.setStackFromEnd(true);
         savedNewsListView.setLayoutManager(savedNewsLayout);
-        //savedNewsAdapter = new NewsListAdapter("SavedNews",savedNewsList,getContext(),this);
-        savedNewsListView.setAdapter(savedNewsAdapter);
 
         loadingDialog = new ProgressDialog(getContext(), R.style.ProgressDialog);
         loadingDialog.setCanceledOnTouchOutside(false);
         loadingDialog.setMessage(getString(R.string.loading));
     }
 
-    private void getData(){
-        final String userId = Utils.getCurrentUserToken(getContext());
-        DatabaseHelper.newsReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                newsList.clear();
-                for (DataSnapshot newsData : dataSnapshot.getChildren()){
-                    News news = newsData.getValue(News.class);
-                    if (news.getAuthor().equals(userId)){
-                        newsList.add(news);
-                        newsAdapter.notifyDataSetChanged();
-                    }
-                    if (savedNewsKeys.contains(newsData.getKey())){
-                        savedNewsList.add(news);
-                        savedNewsAdapter.notifyDataSetChanged();
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
-        loadingDialog.dismiss();
+    private void getData(Query q){
+        newsList = new FirebaseRecyclerOptions.Builder<News>().setQuery(q, News.class).build();
+        newsAdapter = new NewsListAdapter(newsList,null,getContext(), Utils.MY_POST);
+        newsListView.setAdapter(newsAdapter);
+        newsAdapter.startListening();
     }
 
     @Override
@@ -235,7 +206,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                             @Override
                             public void onCallback(Object object) {
                                 //refresh imageview
-                                Utils.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),350,350);
+                                DatabaseHelper.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),350,350);
                             }
                         });
                     }})
@@ -254,7 +225,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null && data.getData() != null){
-            imagePath = data.getData();
+            Uri imagePath = data.getData();
 
             loadingDialog.setMessage(getString(R.string.uploadImage));
             loadingDialog.show();
@@ -263,7 +234,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                 @Override
                 public void onCallback(Object object) {
                     loadingDialog.dismiss();
-                    Utils.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),400,400);
+                    DatabaseHelper.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),400,400);
                 }
             });
 

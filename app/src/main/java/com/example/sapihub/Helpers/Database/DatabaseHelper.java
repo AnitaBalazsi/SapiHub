@@ -2,9 +2,16 @@ package com.example.sapihub.Helpers.Database;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
+import com.example.sapihub.Helpers.FCMAPI;
+import com.example.sapihub.Helpers.RetrofitClient;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Chat;
 import com.example.sapihub.Model.Comment;
@@ -12,7 +19,11 @@ import com.example.sapihub.Model.Event;
 import com.example.sapihub.Model.Message;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.Model.Notifications.FCMToken;
+import com.example.sapihub.Model.Notifications.NotificationData;
+import com.example.sapihub.Model.Notifications.NotificationResponse;
+import com.example.sapihub.Model.Notifications.NotificationSender;
 import com.example.sapihub.Model.User;
+import com.example.sapihub.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -24,7 +35,12 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class DatabaseHelper {
     public static DatabaseReference userReference = FirebaseDatabase.getInstance().getReference("Users");
@@ -33,10 +49,13 @@ public class DatabaseHelper {
     public static DatabaseReference savedPostsReference = FirebaseDatabase.getInstance().getReference("Saved Posts");
     public static DatabaseReference tokensReference = FirebaseDatabase.getInstance().getReference("Tokens");
     public static DatabaseReference commentsReference = FirebaseDatabase.getInstance().getReference("Comments");
+    public static DatabaseReference notificationsReference = FirebaseDatabase.getInstance().getReference("Notifications");
+    public static DatabaseReference chatReference = FirebaseDatabase.getInstance().getReference("ChatRooms");
+
     public static StorageReference profilePictureRef = FirebaseStorage.getInstance().getReference("Profile pictures");
     public static StorageReference newsAttachmentsRef = FirebaseStorage.getInstance().getReference("News attachments");
-    public static StorageReference chatPictureRef = FirebaseStorage.getInstance().getReference("Chat pictures");
-    public static DatabaseReference chatReference = FirebaseDatabase.getInstance().getReference("ChatRooms");
+    public static StorageReference chatAttachments = FirebaseStorage.getInstance().getReference("Chat pictures");
+    public static StorageReference commentAttachments = FirebaseStorage.getInstance().getReference("Comment attachments");
 
     public static void isUserStored(final String token, final FirebaseCallback callback){
         userReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -52,12 +71,13 @@ public class DatabaseHelper {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d("isUserStored",databaseError.getMessage());
             }
         });
     }
 
     public static void addUser(final User user){
-        userReference.child(user.getToken()).setValue(user);
+        userReference.child(user.getUserId().getToken()).setValue(user);
     }
 
     public static void addNews(final News news){
@@ -69,22 +89,21 @@ public class DatabaseHelper {
     }
 
     public static void addEvent (final String username, final Event event){
-        eventsReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                eventsReference.child(username).push().setValue(event);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+        eventsReference.child(username).push().setValue(event);
     }
 
     public static void uploadNewsAttachment(Context context, String newsName, String newsDate, Uri filePath, final FirebaseCallback callback){
         newsAttachmentsRef.child(newsName.concat(newsDate)).child(Utils.fileNameFromUri(context,filePath)).putFile(filePath)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                callback.onCallback(true);
+            }
+        });
+    }
+
+    public static void uploadCommentAttachment(Context context, String commentId, Uri filePath, final FirebaseCallback callback){
+        commentAttachments.child(commentId).child(Utils.fileNameFromUri(context,filePath)).putFile(filePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 callback.onCallback(true);
@@ -101,7 +120,7 @@ public class DatabaseHelper {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("getUserData",databaseError.getMessage());
             }
         });
     }
@@ -151,13 +170,27 @@ public class DatabaseHelper {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("getNewsId",databaseError.getMessage());
             }
         });
     }
 
     public static void getNewsAttachment(News news, String fileName, final FirebaseCallback callback){
         newsAttachmentsRef.child(news.getTitle().concat(news.getDate())).child(fileName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                callback.onCallback(uri);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                callback.onCallback(null);
+            }
+        });
+    }
+
+    public static void getCommentAttachment(Comment comment, String fileName, final FirebaseCallback callback){
+        commentAttachments.child(comment.getAuthor().concat(comment.getDate())).child(fileName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
             public void onSuccess(Uri uri) {
                 callback.onCallback(uri);
@@ -192,7 +225,7 @@ public class DatabaseHelper {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("getNewsKey",databaseError.getMessage());
             }
         });
     }
@@ -210,7 +243,7 @@ public class DatabaseHelper {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("postIsSaved",databaseError.getMessage());
             }
         });
     }
@@ -220,6 +253,25 @@ public class DatabaseHelper {
             @Override
             public void onSuccess(Void aVoid) {
                 callback.onCallback(true);
+            }
+        });
+    }
+
+    public static void deleteEvent(final String userToken, final Event event){
+        eventsReference.child(userToken).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot eventData : dataSnapshot.getChildren()){
+                    Event e = eventData.getValue(Event.class);
+                    if (e.getMessage().equals(event.getMessage()) && e.getDate().equals(event.getDate())){
+                        eventsReference.child(userToken).child(eventData.getKey()).removeValue();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d("deleteEvent",databaseError.getMessage());
             }
         });
     }
@@ -237,7 +289,7 @@ public class DatabaseHelper {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("deleteNews",databaseError.getMessage());
             }
         });
 
@@ -253,31 +305,37 @@ public class DatabaseHelper {
         }
     }
 
-    public static void addComment(String newsKey, Comment comment){
+    public static void addComment(final String newsKey, Comment comment){
         commentsReference.child(newsKey).push().setValue(comment);
     }
 
-    public static void deleteComment(final String newsKey, final Comment comment, final FirebaseCallback callback){
+
+    public static void deleteComment(final String newsKey, final Comment comment){
         commentsReference.child(newsKey).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot commentData : dataSnapshot.getChildren()){
                     if (commentData.getValue(Comment.class).equals(comment)){
                         commentsReference.child(newsKey).child(commentData.getKey()).removeValue();
-                        callback.onCallback(null);
                     }
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("deleteComment",databaseError.getMessage());
             }
         });
+
+        if (comment.getImages() != null){
+            for (String imageUrl : comment.getImages()){
+                commentAttachments.child(comment.getAuthor().concat(comment.getDate())).child(imageUrl).delete();
+            }
+        }
     }
 
-    public static void addReply(String newsKey, String commentKey, List<Comment> replies){
-        commentsReference.child(newsKey).child(commentKey).child("replies").setValue(replies);
+    public static void addLike(String newsKey, String commentKey, List<String> likes){
+        commentsReference.child(newsKey).child(commentKey).child("likes").setValue(likes);
     }
 
     public static void getCommentKey(String newsKey, final Comment comment, final FirebaseCallback callback){
@@ -294,27 +352,33 @@ public class DatabaseHelper {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("getCommentKey",databaseError.getMessage());
             }
         });
     }
 
-    public static void addMessage(String chatId,List<Message> messages){
-        chatReference.child(chatId).child("messages").setValue(messages);
+    public static void addMessage(String chatId, List<Message> messages, final FirebaseCallback callback){
+        chatReference.child(chatId).child("messages").setValue(messages).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                callback.onCallback(true);
+            }
+        });
     }
 
-    public static void addChatImage(final String id, Uri imagePath, final FirebaseCallback callback){
-        chatPictureRef.child(id).putFile(imagePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                chatPictureRef.child(id).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+    public static void addChatAttachment(final String id, Uri path, final FirebaseCallback callback){
+        chatAttachments.child(id).putFile(path)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
-                    public void onSuccess(Uri uri) {
-                        callback.onCallback(uri);
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        chatAttachments.child(id).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                callback.onCallback(uri);
+                            }
+                        });
                     }
-                });
-            }
-        }).addOnFailureListener(new OnFailureListener() {
+                }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 callback.onCallback(null);
@@ -327,26 +391,28 @@ public class DatabaseHelper {
     }
 
     public static void createChat(final Chat chat, final FirebaseCallback callback){
-        final String[] key = new String[1];
+        final String user1 = chat.getUsers().get(0);
+        final String user2 = chat.getUsers().get(1);
         chatReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot chatData : dataSnapshot.getChildren()) {
-                    if (chat.equals(chatData.getValue(Chat.class))) {
-                        key[0] = chatData.getKey();
+                boolean isCreated = false;
+                for (DataSnapshot chatData : dataSnapshot.getChildren()){
+                    if (chatData.getKey().contains(user1) && chatData.getKey().contains(user2)){
+                        isCreated = true;
+                        callback.onCallback(chatData.getKey());
                     }
                 }
 
-                if (key[0] == null){
-                    key[0] = chatReference.push().getKey();
-                    chatReference.child(key[0]).setValue(chat);
+                if (!isCreated){
+                    chatReference.child(user1.concat(user2)).setValue(chat);
+                    callback.onCallback(null);
                 }
-                callback.onCallback(key[0]);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("createChat",databaseError.getMessage());
             }
         });
     }
@@ -359,8 +425,99 @@ public class DatabaseHelper {
         userReference.child(userId).child("status").setValue(status);
     }
 
-    public static void changePostLastComment(String newsId, String lastComment){
-        newsReference.child(newsId).child("lastComment").setValue(lastComment);
+    public static void getUsers(final Context context, final String query, final FirebaseCallback callback) {
+        final List<User> userList = new ArrayList<>();
+        DatabaseHelper.userReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                userList.clear();
+                for (DataSnapshot userData : dataSnapshot.getChildren()){
+                    User user = userData.getValue(User.class);
+                    if (!user.getUserId().getToken().equals(Utils.getCurrentUserToken(context)) && user.getName().contains(query)){
+                        userList.add(user);
+                    }
+                }
+                callback.onCallback(userList);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d("getUsers",databaseError.getMessage());
+            }
+        });
+    }
+
+    public static void loadProfilePicture(final Context context, final ImageView imageView, String userId, final int width, final int height){
+        DatabaseHelper.getProfilePicture(userId, new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                if (object != null){
+                    Uri imageUri = (Uri) object;
+                    Glide.with(context).load(imageUri.toString())
+                            .circleCrop()
+                            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                            .apply(new RequestOptions().override(width, height))
+                            .placeholder(context.getDrawable(R.drawable.ic_account_circle))
+                            .into(imageView);
+                } else {
+                    imageView.setImageDrawable(context.getDrawable(R.drawable.ic_account_circle));
+                    imageView.getLayoutParams().height = height;
+                    imageView.getLayoutParams().width = width;
+                }
+            }
+        });
+    }
+
+    public static void sendNotification(final NotificationData notificationData){
+        DatabaseHelper.tokensReference.orderByKey().equalTo(notificationData.getUser()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot tokenData : dataSnapshot.getChildren()){
+                    FCMToken token = tokenData.getValue(FCMToken.class);
+                    NotificationSender sender = new NotificationSender(notificationData,token.getToken());
+                    FCMAPI api = RetrofitClient.getRetrofit(FCMAPI.url).create(FCMAPI.class);
+                    api.sendNotification(sender).enqueue(new Callback<NotificationResponse>() {
+                        @Override
+                        public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
+                            addNotification(notificationData.getUser(),notificationData);
+                        }
+
+                        @Override
+                        public void onFailure(Call<NotificationResponse> call, Throwable t) {
+                            Log.d("sendNotificationFailure",t.getMessage());
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d("sendNotification",databaseError.getMessage());
+            }
+        });
+    }
+
+    public static void addNotification(String user, NotificationData notificationData){
+        notificationsReference.child(user).push().setValue(notificationData);
+    }
+
+    public static void removeNotification(final NotificationData notificationData){
+        notificationsReference.child(notificationData.getUser()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot data : dataSnapshot.getChildren()){
+                    NotificationData notification = data.getValue(NotificationData.class);
+                    if (notification.equals(notificationData)){
+                        notificationsReference.child(notificationData.getUser()).child(data.getKey()).removeValue();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d("removeNotification",databaseError.getMessage());
+            }
+        });
     }
 }
 

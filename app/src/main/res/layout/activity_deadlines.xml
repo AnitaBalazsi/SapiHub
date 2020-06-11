@@ -3,18 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragments.DeadlinesFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".Activities.DeadlinesActivity">
 
-    <com.example.sapihub.Helpers.CustomCalendar
+    <com.applandeo.materialcalendarview.CalendarView
         android:id="@+id/calendar"
+        app:headerColor="@color/colorGreen"
+        app:todayLabelColor="@color/colorGreen"
+        app:highlightedDaysLabelsColor="@color/colorGreen"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true">
-
-    </com.example.sapihub.Helpers.CustomCalendar>
-
+        android:layout_height="match_parent"/>
 
     <TextView
         android:id="@+id/eventsTitle"
@@ -35,4 +33,5 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/eventsTitle"
         android:layout_margin="20dp"/>
+
 </RelativeLayout>

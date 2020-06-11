@@ -21,13 +21,13 @@ import com.example.sapihub.Model.Message;
 import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
 
+import java.text.ParseException;
 import java.util.List;
 
 public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ListViewHolder> {
     private List<Chat> chatList;
     private Context context;
     private ContactClickListener contactClickListener;
-    private String userName;
     private String currentUser;
 
     public ChatListAdapter(List<Chat> chatList, Context context, ContactClickListener contactClickListener) {
@@ -56,19 +56,24 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ListVi
             public void onCallback(Object object) {
                 User user = (User) object;
                 holder.userName.setText(user.getName());
-                loadLastMessage(lastMessage,holder);
+                loadLastMessage(lastMessage,user.getName(),holder);
                 if (user.getStatus().equals(context.getString(R.string.online))){
                     holder.onlineIcon.setVisibility(View.VISIBLE);
                 }
             }
         });
 
-        Utils.loadProfilePicture(context,holder.userProfile,userId,150,150);
+        DatabaseHelper.loadProfilePicture(context,holder.userProfile,userId,150,150);
 
-        holder.messageDate.setText(lastMessage.getDate());  //todo format date
+        try {
+            holder.messageDate.setText(Utils.getRelativeDate(Utils.stringToDate(lastMessage.getDate())));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
         if (lastMessage.getSender().equals(currentUser) && lastMessage.isSeen()){
             //appears receiver's image when seen
-            Utils.loadProfilePicture(context,holder.notificationImage,userId,50,50);
+            DatabaseHelper.loadProfilePicture(context,holder.notificationImage,userId,50,50);
         }
 
         if (!lastMessage.getSender().equals(currentUser) && !lastMessage.isSeen()){
@@ -84,7 +89,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ListVi
         }
     }
 
-    private void loadLastMessage(Message lastMessage, ListViewHolder holder) {
+    private void loadLastMessage(Message lastMessage, String name, ListViewHolder holder) {
         switch (lastMessage.getType()){
             case "text":
                 holder.lastMessage.setText(lastMessage.getContent());
@@ -93,21 +98,21 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ListVi
                 if (lastMessage.getSender().equals(currentUser)){
                     holder.lastMessage.setText(context.getString(R.string.imageSent));
                 } else {
-                    holder.lastMessage.setText(userName.concat(" ").concat(context.getString(R.string.imageReceived)));
+                    holder.lastMessage.setText(name.concat(" ").concat(context.getString(R.string.imageReceived)));
                 }
                 break;
-            case "video":
+            case "file":
                 if (lastMessage.getSender().equals(currentUser)){
-                    holder.lastMessage.setText(context.getString(R.string.videoSent));
+                    holder.lastMessage.setText(context.getString(R.string.fileSent));
                 } else {
-                    holder.lastMessage.setText(userName.concat(" ").concat(context.getString(R.string.videoReceived)));
+                    holder.lastMessage.setText(name.concat(" ").concat(context.getString(R.string.fileReceived)));
                 }
                 break;
             case "sharedPost":
                 if (lastMessage.getSender().equals(currentUser)){
                     holder.lastMessage.setText(context.getString(R.string.postSent));
                 } else {
-                    holder.lastMessage.setText(userName.concat(" ").concat(context.getString(R.string.postReceived)));
+                    holder.lastMessage.setText(name.concat(" ").concat(context.getString(R.string.postReceived)));
                 }
                 break;
         }

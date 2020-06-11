@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.provider.OpenableColumns;
 import android.text.format.DateUtils;
 import android.view.View;
@@ -32,6 +33,10 @@ import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Model.Chat;
 import com.example.sapihub.Model.Message;
+import com.example.sapihub.Model.Notifications.FCMToken;
+import com.example.sapihub.Model.Notifications.NotificationData;
+import com.example.sapihub.Model.Notifications.NotificationResponse;
+import com.example.sapihub.Model.Notifications.NotificationSender;
 import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -48,12 +53,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 import static android.os.Environment.DIRECTORY_DOWNLOADS;
 
 public class Utils {
     public static final String ADD_POST = "ADD_POST";
     public static final String ADD_POLL = "ADD_POLL";
     public static final String VIEW_POLL = "VIEW_POLL";
+    public static final String MY_POST = "MY_POST";
+    public static final String SAVED_POST = "SAVED_POST";
+    public static final String NEWS_FRAGMENT = "NEWS_FRAGMENT";
 
     public static void showSnackbar (View view, String text, int color){
         Snackbar snackbar = Snackbar.make(view, text, Snackbar.LENGTH_LONG);
@@ -75,39 +87,6 @@ public class Utils {
         return imageUri.toString();
     }
 
-    public static void loadProfilePicture(final Context context, final ImageView imageView, String userId, final int width, final int height){
-        DatabaseHelper.getProfilePicture(userId, new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                if (object != null){
-                    Uri imageUri = (Uri) object;
-                    Glide.with(context).load(imageUri.toString())
-                            .circleCrop()
-                            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                            .apply(new RequestOptions().override(width, height))
-                            .placeholder(context.getDrawable(R.drawable.ic_account_circle))
-                            .into(imageView);
-                } else {
-                    imageView.setImageDrawable(context.getDrawable(R.drawable.ic_account_circle));
-                    imageView.getLayoutParams().height = height;
-                    imageView.getLayoutParams().width = width;
-                }
-            }
-        });
-    }
-
-    public static Date getZeroTimeDate(Date date) {
-        Calendar calendar = Calendar.getInstance();
-
-        calendar.setTime(date);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-
-        return calendar.getTime();
-    }
-
     public static String dateToString(Date date){
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.ROOT);
         return format.format(date);
@@ -116,17 +95,6 @@ public class Utils {
     public static Date stringToDate (String date) throws ParseException {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT);
         return format.parse(date);
-    }
-
-    public static long differenceBetweenDates(String date1, String date2){
-        long diff = 0;
-        try {
-            diff = stringToDate(date1).getTime() - stringToDate(date2).getTime();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        return Math.abs(diff);
     }
 
     public static void hideKeyboard(Activity activity) {
@@ -168,7 +136,7 @@ public class Utils {
                             downloadFile(context,imageUri.toString(), imageUri);
                             imageDialog.dismiss();
                         } else {
-                            shareInChat(context, imageUri.toString(), "image", new FirebaseCallback() {
+                            shareInChat(context, imageUri.toString(), "image", null,new FirebaseCallback() {
                                 @Override
                                 public void onCallback(Object object) {
                                     imageDialog.dismiss();
@@ -198,9 +166,9 @@ public class Utils {
                 .into(imageView);
     }
 
-    public static void shareInChat(final Context context, final String data, final String type, final FirebaseCallback callback){
-        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
-        bottomSheetDialog.setContentView(R.layout.share_post_popup);
+    public static void shareInChat(final Context context, final String data, final String type, final List<String> captions, final FirebaseCallback callback){
+        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context,R.style.BottomSheetDialog);
+        bottomSheetDialog.setContentView(R.layout.user_list_dialog);
         bottomSheetDialog.setTitle(context.getString(R.string.sendForward));
 
         final RecyclerView recyclerView = bottomSheetDialog.findViewById(R.id.userList);
@@ -213,22 +181,22 @@ public class Utils {
             @Override
             public void onUserClick(final int position) {
                 String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-                final Message message = new Message(Utils.getCurrentUserToken(context), users.get(position).getToken(), data, date, type, false);
-                getChatId(context, users.get(position).getToken(), new FirebaseCallback() {
+                final Message message = new Message(Utils.getCurrentUserToken(context), users.get(position).getUserId().getToken(), data, date, type, false);
+                getChatId(context, users.get(position).getUserId().getToken(), new FirebaseCallback() {
                     @Override
                     public void onCallback(Object object) {
                         final DataSnapshot chatData = (DataSnapshot) object;
                         if (chatData != null) {
                             sharePost(chatData, message);
                             bottomSheetDialog.dismiss();
-                            callback.onCallback(users.get(position).getToken());
+                            callback.onCallback(users.get(position).getUserId().getToken());
                         } else {
-                            createChat(context, users.get(position).getToken(), new FirebaseCallback() {
+                            createChat(context, users.get(position).getUserId().getToken(), new FirebaseCallback() {
                                 @Override
                                 public void onCallback(Object object) {
                                     sharePost((DataSnapshot) object, message);
                                     bottomSheetDialog.dismiss();
-                                    callback.onCallback(users.get(position).getToken());
+                                    callback.onCallback(users.get(position).getUserId().getToken());
                                 }
                             });
                         }
@@ -239,18 +207,29 @@ public class Utils {
         });
         recyclerView.setAdapter(adapter);
 
-        getUsers(context, "", new FirebaseCallback() {
+        DatabaseHelper.getUsers(context, "", new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
-                users.addAll((List<User>) object);
-                adapter.notifyDataSetChanged();
+                if (captions != null){
+                    for (User user : (List<User>) object){
+                        if (captions.contains(context.getString(R.string.publicCaption)) //share is only available for target users
+                                || captions.contains(user.getDegree().concat(user.getStudyYear()))
+                                || captions.contains(user.getDepartment())){
+                            users.add(user);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                } else {
+                    users.addAll((List<User>)object);
+                    adapter.notifyDataSetChanged();
+                }
             }
         });
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                getUsers(context, query, new FirebaseCallback() {
+                DatabaseHelper.getUsers(context, query, new FirebaseCallback() {
                     @Override
                     public void onCallback(Object object) {
                         users.clear();
@@ -263,7 +242,7 @@ public class Utils {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                getUsers(context, newText, new FirebaseCallback() {
+                DatabaseHelper.getUsers(context, newText, new FirebaseCallback() {
                     @Override
                     public void onCallback(Object object) {
                         users.clear();
@@ -281,7 +260,11 @@ public class Utils {
     public static void sharePost(DataSnapshot chatData, Message message) {
         Chat chat = chatData.getValue(Chat.class);
         chat.addMessage(message);
-        DatabaseHelper.addMessage(chatData.getKey(),chat.getMessages());
+        DatabaseHelper.addMessage(chatData.getKey(), chat.getMessages(), new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+            }
+        });
     }
 
     public static void createChat(Context context, String token, final FirebaseCallback callback) {
@@ -331,26 +314,11 @@ public class Utils {
         });
     }
 
-    public static void getUsers(final Context context, final String query, final FirebaseCallback callback) {
-        final List<User> userList = new ArrayList<>();
-        DatabaseHelper.userReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                userList.clear();
-                for (DataSnapshot userData : dataSnapshot.getChildren()){
-                    User user = userData.getValue(User.class);
-                    if (!user.getToken().equals(Utils.getCurrentUserToken(context)) && user.getName().contains(query)){
-                        userList.add(user);
-                    }
-                }
-                callback.onCallback(userList);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+    public static boolean checkIfEnabled(String key,Context context){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean isEnabled = sharedPreferences.getBoolean(key,false);
+        return isEnabled;
     }
+
 
 }

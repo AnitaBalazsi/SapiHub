@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -26,17 +27,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.sapihub.Helpers.Adapters.ChatAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
-import com.example.sapihub.Helpers.FCMAPI;
-import com.example.sapihub.Helpers.RetrofitClient;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Chat;
 import com.example.sapihub.Model.Message;
-import com.example.sapihub.Model.News;
-import com.example.sapihub.Model.Notifications.NotificationData;
 import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
@@ -45,23 +44,26 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class ChatActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, ChatAdapter.OnSharedPostClickListener {
+public class ChatActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher {
     private TextView username, isTyping;
     private String userId, currentUserId, chatId;
-    private ImageView profilePicture, sendMessage, imageFromCamera, imageFromGallery, onlineIcon;
+    private ImageView profilePicture, sendMessage, imageFromCamera, imageFromGallery, onlineIcon, attachFile, showOptions;
     private EditText messageInput;
-    private List<Message> messageList = new ArrayList<>();
+    private FirebaseRecyclerOptions<Message> messageList;
     private List<String> users = new ArrayList<>();
     private RecyclerView chatView;
     private ChatAdapter adapter;
     private ValueEventListener eventListener;
     private Uri cameraImageUri;
     private Chat chatRoom;
-    private FCMAPI api;
-    private boolean notify = false;
+    private static int messageCounter = 15;
 
     private static int FROM_GALLERY = 1;
     private static int IMAGE_FROM_CAMERA = 2;
+    private static int FILE_RESULT = 3;
+
+    private static int FILE_PERMISSION = 0;
+    private static int IMAGE_PERMISSION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,14 +72,29 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         initializeVariables();
 
         users.add(currentUserId); users.add(userId);
+        chatId = currentUserId.concat(userId);
         chatRoom = new Chat(users);
+
         DatabaseHelper.createChat(chatRoom, new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
-                chatId = (String) object;
+                if (object != null){
+                    chatId = (String) object;
+                    DatabaseHelper.chatReference.child(chatId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            Chat chat = dataSnapshot.getValue(Chat.class);
+                            chatRoom.setMessages(chat.getMessages());
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            Log.d("ChatActivity",databaseError.getMessage());
+                        }
+                    });
+                }
                 getUserData();
-                getMessages();
-                chatRoom.setMessages(messageList);
+                getMessages(messageCounter);
                 checkIfSeen();
             }
         });
@@ -100,7 +117,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("checkIfSeen",databaseError.getMessage());
             }
         };
         DatabaseHelper.chatReference.child(chatId).child("messages").addValueEventListener(eventListener);
@@ -131,7 +148,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        Utils.loadProfilePicture(this,profilePicture,userId,100,100);
+        DatabaseHelper.loadProfilePicture(this,profilePicture,userId,100,100);
     }
 
     private void initializeVariables() {
@@ -150,16 +167,15 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         imageFromCamera.setOnClickListener(this);
         sendMessage = findViewById(R.id.sendMessage);
         sendMessage.setOnClickListener(this);
+        attachFile = findViewById(R.id.attachFile);
+        attachFile.setOnClickListener(this);
+        showOptions = findViewById(R.id.showOptions);
+        showOptions.setOnClickListener(this);
 
         chatView = findViewById(R.id.chatView);
-        chatView.setHasFixedSize(true);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
         chatView.setLayoutManager(layoutManager);
-        adapter = new ChatAdapter(this,messageList,this);
-        chatView.setAdapter(adapter);
-
-        api = RetrofitClient.getRetrofit("https://fcm.googleapis.com/").create(FCMAPI.class);
     }
 
     @Override
@@ -174,12 +190,24 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.attachImageFromCamera:
                 askForPermissions();
                 break;
+            case R.id.attachFile:
+                attachFile();
+                break;
+            case R.id.showOptions:
+                LinearLayout layout = findViewById(R.id.attachmentOptions);
+                if (layout.getVisibility() == View.VISIBLE){
+                    layout.setVisibility(View.GONE);
+                } else {
+                    layout.setVisibility(View.VISIBLE);
+                }
+
+                break;
         }
     }
 
     private void askForPermissions() {
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, IMAGE_PERMISSION);
         } else {
             getImageFromCamera();
         }
@@ -188,24 +216,29 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1){
+        if (requestCode == IMAGE_PERMISSION){
             if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 getImageFromCamera();
+            }
+        }
+
+        if (requestCode == FILE_PERMISSION){
+            if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                attachFile();
             }
         }
     }
 
     private void getImageFromCamera() {
-        Intent intent = new Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA);
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         cameraImageUri = this.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,new ContentValues());
         intent.putExtra(MediaStore.EXTRA_OUTPUT,cameraImageUri);
-        startActivityForResult(intent,IMAGE_FROM_CAMERA);
+        startActivityForResult(intent, IMAGE_FROM_CAMERA);
     }
 
     private void uploadFromGallery() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] {"image/*", "video/*"});
+        intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         startActivityForResult(intent, FROM_GALLERY);
     }
@@ -213,55 +246,51 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK){
-            if (requestCode == FROM_GALLERY){
-                cameraImageUri = data.getData();
-            }
             if (requestCode == IMAGE_FROM_CAMERA){
-                uploadData(cameraImageUri);
+                uploadData(cameraImageUri, "image");
+            }
+            if (requestCode == FROM_GALLERY){
+                uploadData(data.getData(), "image");
+            }
+            if (requestCode == FILE_RESULT){
+                uploadData(data.getData(), "file");
             }
         }
     }
 
-    private void uploadData(Uri data) {
-        final String type;
+    private void uploadData(Uri data, final String type) {
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage(getString(R.string.uploading));
         progressDialog.show();
 
-        if (getContentResolver().getType(data).contains("video")){
-            type = "video";
-        } else {
-            type = "image";
-        }
         final String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-        DatabaseHelper.addChatImage(currentUserId.concat(date), data, new FirebaseCallback() {
+        DatabaseHelper.addChatAttachment(currentUserId.concat(date), data, new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
                 if (object != null){
                     String downloadUri = object.toString();
                     chatRoom.addMessage(new Message(currentUserId,userId,downloadUri,date,type,false)); //todo
-                    DatabaseHelper.addMessage(chatId,chatRoom.getMessages());
+                    DatabaseHelper.addMessage(chatId, chatRoom.getMessages(), new FirebaseCallback() {
+                        @Override
+                        public void onCallback(Object object) {
+                            scrollToBottom();
+                        }
+                    });
                     progressDialog.dismiss();
                 }
             }
         });
 
-        notify = true;
         DatabaseHelper.getUserData(currentUserId, new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
                 User user = (User) object;
-                if (notify){
-                    NotificationData notificationData = new NotificationData(userId,"New message",user.getName()+" fenykepett kuldott",R.mipmap.ic_launcher);
-                    sendNotification(userId,notificationData); //todo
-                }
-                notify = false;
+                //todo send notif
             }
         });
     }
 
     private void sendTextMessage() {
-        notify = true;
         final String message = messageInput.getText().toString().trim();
         String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
@@ -270,18 +299,18 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             messageInput.requestFocus();
         } else {
             chatRoom.addMessage(new Message(currentUserId,userId,message,date,"text",false));
-            DatabaseHelper.addMessage(chatId,chatRoom.getMessages()); //todo
-            adapter.notifyDataSetChanged();
+            DatabaseHelper.addMessage(chatId, chatRoom.getMessages(), new FirebaseCallback() {
+                @Override
+                public void onCallback(Object object) {
+                    scrollToBottom();
+                }
+            }); //todo
 
             DatabaseHelper.getUserData(currentUserId, new FirebaseCallback() {
                 @Override
                 public void onCallback(Object object) {
                     User user = (User) object;
-                    if (notify){
-                        NotificationData notificationData = new NotificationData(userId,"New message",user.getName()+": "+message,R.drawable.ic_launcher_background);
-                        sendNotification(userId,notificationData);
-                    }
-                    notify = false;
+                    //todo send notif
                 }
             });
         }
@@ -289,51 +318,34 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         messageInput.setText(null);
     }
 
-    private void sendNotification(final String userId, final NotificationData notificationData) {
-        /*DatabaseHelper.tokensReference.orderByKey().equalTo(userId).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot tokenData : dataSnapshot.getChildren()){
-                    FCMToken token = tokenData.getValue(FCMToken.class);
-                    NotificationSender sender = new NotificationSender(notificationData,token.getToken());
-                    api.sendNotification(sender).enqueue(new Callback<NotificationResponse>() {
-                        @Override
-                        public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
+    private void getMessages(int messageCounter){
+        Query q = DatabaseHelper.chatReference.child(chatId).child("messages").limitToLast(messageCounter);
+        messageList = new FirebaseRecyclerOptions.Builder<Message>().setQuery(q,Message.class).build();
+        adapter = new ChatAdapter(messageList,this);
+        chatView.setAdapter(adapter);
+        adapter.startListening();
 
-                        }
-
-                        @Override
-                        public void onFailure(Call<NotificationResponse> call, Throwable t) {
-
-                        }
-                    });
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });*/
+        scrollToBottom();
     }
 
-    private void getMessages(){
-        DatabaseHelper.chatReference.child(chatId).child("messages").addValueEventListener(new ValueEventListener() {
+    private void scrollToBottom() {
+        chatView.postDelayed(new Runnable() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                messageList.clear();
-                for (DataSnapshot messageData : dataSnapshot.getChildren()){
-                    Message message = messageData.getValue(Message.class);
-                    messageList.add(message);
-                    adapter.notifyDataSetChanged();
-                }
+            public void run() {
+                chatView.scrollToPosition(adapter.getItemCount() - 1);
             }
+        },3000);
+    }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-            }
-        });
+    private void attachFile() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+            Intent filePicker = new Intent(Intent.ACTION_GET_CONTENT);
+            filePicker.setType("application/*");
+            startActivityForResult(filePicker, FILE_RESULT);
+        } else {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},FILE_PERMISSION);
+        }
     }
 
     @Override
@@ -355,22 +367,4 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    @Override
-    public void onSharedPostClick(int position) {
-        String postId = messageList.get(position).getContent();
-        DatabaseHelper.newsReference.child(postId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                News news = dataSnapshot.getValue(News.class);
-                Intent openDetails = new Intent(getBaseContext(), NewsDetailsActivity.class);
-                openDetails.putExtra("selectedNews", news);
-                startActivity(openDetails);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
 }

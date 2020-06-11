@@ -37,15 +37,4 @@ public class Chat {
         this.messages = messages;
     }
 
-    @Override
-    public boolean equals(@Nullable Object obj) {
-        Chat chat = (Chat) obj;
-        if (this.getClass() != obj.getClass()) return false;
-        for (String user : users){
-            if (!chat.getUsers().contains(user)){
-                return false;
-            }
-        }
-        return true;
-    }
 }

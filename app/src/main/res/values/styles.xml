@@ -16,6 +16,12 @@
         <item name="android:textColor">@color/colorBlack</item>
     </style>
 
+    <style name="BottomSheetDialog" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+    </style>
+
     <style name="LoginEditText" parent="Widget.AppCompat.EditText">
         <item name="android:textColor">@color/colorWhite</item>
         <item name="android:textColorHint">@color/colorWhite</item>
@@ -38,7 +44,7 @@
     <style name="AlertDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
         <item name="android:textColor">@color/colorBlack</item>
         <item name="android:textColorPrimary">@color/colorBlack</item>
-        <item name="textColorAlertDialogListItem">@color/colorBlack</item>
+        <item name="android:textColorAlertDialogListItem">@color/colorBlack</item>
         <item name="colorAccent">@color/colorBlack</item>
         <item name="editTextStyle">@style/EditText</item>
     </style>

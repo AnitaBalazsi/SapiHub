@@ -9,23 +9,25 @@ public class Comment {
     private String author;
     private String date;
     private String content;
-    private List<Comment> replies = new ArrayList<>();
-
+    private List<String> likes = new ArrayList<>();
+    private List<String> images = new ArrayList<>();
 
     public Comment() {
     }
 
-    public Comment(String author, String date, String content) {
+    public Comment(String author, String date, String content, List<String> images) {
         this.author = author;
         this.date = date;
         this.content = content;
+        this.images = images;
     }
 
-    public Comment(String author, String date, String content, List<Comment> replies) {
+    public Comment(String author, String date, String content, List<String> likes, List<String> images) {
         this.author = author;
         this.date = date;
         this.content = content;
-        this.replies = replies;
+        this.likes = likes;
+        this.images = images;
     }
 
     public String getAuthor() {
@@ -40,12 +42,20 @@ public class Comment {
         return content;
     }
 
-    public List<Comment> getReplies() {
-        return replies;
+    public List<String> getLikes() {
+        return likes;
     }
 
-    public void addReply(Comment reply){
-        replies.add(reply);
+    public void addLike(String user){
+        likes.add(user);
+    }
+
+    public void removeLike(String user){
+        likes.remove(user);
+    }
+
+    public List<String> getImages() {
+        return images;
     }
 
     @Override

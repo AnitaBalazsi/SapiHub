@@ -1,6 +1,7 @@
 package com.example.sapihub.Fragments;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -21,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.sapihub.Activities.AddNewsActivity;
+import com.example.sapihub.Activities.SplashScreen;
 import com.example.sapihub.Helpers.Adapters.NewsListAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
@@ -45,7 +47,9 @@ public class NewsFragment extends Fragment implements View.OnClickListener, Swip
     private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView listView;
     private Spinner filterNews;
+    private User user;
     private LinearLayout captionContainer;
+    private static Context context;
 
     public NewsFragment() {
         // Required empty public constructor
@@ -62,17 +66,19 @@ public class NewsFragment extends Fragment implements View.OnClickListener, Swip
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        context = getContext();
         initializeVariables();
         loadCurrentUser();
+
     }
 
     private void loadCurrentUser() {
-        DatabaseHelper.getUserData(Utils.getCurrentUserToken(getContext()), new FirebaseCallback() {
+        DatabaseHelper.getUserData(Utils.getCurrentUserToken(context), new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
-                User user = (User) object;
+                user = (User) object;
                 List<String> captions = new ArrayList<>();
-                captions.add(getString(R.string.publicCaption));
                 captions.add(user.getDepartment());
                 if (user.getDegree() != null){
                     captions.add(user.getDegree());
@@ -83,13 +89,14 @@ public class NewsFragment extends Fragment implements View.OnClickListener, Swip
     }
 
     private void loadCaptions(List<String> captions){
+        captions.add(context.getString(R.string.publicCaption));
         for (final String caption : captions){
-            final TextView textView = new TextView(getContext());
+            final TextView textView = new TextView(context);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             params.setMargins(10,5,10,0);
             textView.setLayoutParams(params);
             textView.setPadding(20,20,20,20);
-            textView.setBackground(getContext().getDrawable(R.drawable.caption_background_white));
+            textView.setBackground(context.getDrawable(R.drawable.caption_background_white));
             textView.setText(caption);
             captionContainer.addView(textView);
 
@@ -108,7 +115,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener, Swip
 
     private void disableCaption(TextView textView) {
         textView.setTextColor(getResources().getColor(android.R.color.darker_gray));
-        textView.setBackground(getContext().getDrawable(R.drawable.caption_background_white));
+        textView.setBackground(context.getDrawable(R.drawable.caption_background_white));
         adapter.changeCaption("");
         refreshList();
     }
@@ -119,8 +126,12 @@ public class NewsFragment extends Fragment implements View.OnClickListener, Swip
         }
 
         selectedText.setTextColor(getResources().getColor(R.color.colorWhite));
-        selectedText.setBackground(getContext().getDrawable(R.drawable.caption_background_green));
-        adapter.changeCaption(selectedText.getText().toString());
+        selectedText.setBackground(context.getDrawable(R.drawable.caption_background_green));
+        if (selectedText.getText().toString().contains(user.getDegree())){
+            adapter.changeCaption(selectedText.getText().toString().concat(user.getStudyYear()));
+        } else {
+            adapter.changeCaption(selectedText.getText().toString());
+        }
         refreshList();
     }
 
@@ -144,7 +155,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener, Swip
         swipeRefreshLayout.setOnRefreshListener(this);
 
         listView = getView().findViewById(R.id.newsList);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         layoutManager.setReverseLayout(true);
         layoutManager.setStackFromEnd(true); //show newest first
         listView.setLayoutManager(layoutManager);
@@ -171,7 +182,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener, Swip
 
     private void loadData(Query q){
         newsList = new FirebaseRecyclerOptions.Builder<News>().setQuery(q, News.class).build();
-        adapter = new NewsListAdapter(newsList,getContext(),null);
+        adapter = new NewsListAdapter(newsList,null,context,Utils.NEWS_FRAGMENT);
         listView.setAdapter(adapter);
         adapter.startListening();
     }

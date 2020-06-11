@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
@@ -38,7 +39,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ListVi
 
     @Override
     public void onBindViewHolder(@NonNull ListViewHolder holder, int position) {
-        Utils.loadProfilePicture(context,holder.profilePicture,userList.get(position).getToken(),100,100);
+        DatabaseHelper.loadProfilePicture(context,holder.profilePicture,userList.get(position).getUserId().getToken(),120,120);
         holder.username.setText(userList.get(position).getName());
         if (userList.get(position).getDegree() != null){
             holder.degree.setText(userList.get(position).getDegree());
@@ -47,6 +48,8 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ListVi
         }
         if (userList.get(position).getStatus().equals(context.getString(R.string.online))){
             holder.onlineIcon.setVisibility(View.VISIBLE);
+        } else {
+            holder.onlineIcon.setVisibility(View.GONE);
         }
     }
 

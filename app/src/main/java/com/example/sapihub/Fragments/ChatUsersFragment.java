@@ -1,6 +1,7 @@
 package com.example.sapihub.Fragments;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -38,6 +39,7 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
     private List<User> userList = new ArrayList<>();
     private UserListAdapter adapter;
     private SearchView searchView;
+    private static Context context;
 
     public ChatUsersFragment() {
         // Required empty public constructor
@@ -54,6 +56,8 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        context = getContext();
         initializeVariables();
         getUsers();
     }
@@ -65,7 +69,7 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
                 userList.clear();
                 for (DataSnapshot userData : dataSnapshot.getChildren()){
                     User user = userData.getValue(User.class);
-                    if (!user.getToken().equals(Utils.getCurrentUserToken(getContext()))){
+                    if (!user.getUserId().getToken().equals(Utils.getCurrentUserToken(getContext()))){
                         userList.add(userData.getValue(User.class));
                     }
                     adapter.notifyDataSetChanged();
@@ -94,12 +98,12 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
     @Override
     public void onUserClick(int position) {
         Intent profileIntent = new Intent(getActivity(), ChatActivity.class);
-        profileIntent.putExtra("userId",userList.get(position).getToken());
+        profileIntent.putExtra("userId",userList.get(position).getUserId().getToken());
         startActivity(profileIntent);
     }
 
     @Override
-    public boolean onQueryTextSubmit(String query) {
+    public boolean onQueryTextSubmit(final String query) {
         if (!query.isEmpty()){
             userList.clear();
             DatabaseHelper.userReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -107,7 +111,7 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     for (DataSnapshot userData : dataSnapshot.getChildren()){
                         User user = userData.getValue(User.class);
-                        if (!user.getToken().equals(Utils.getCurrentUserToken(getContext()))){
+                        if (!user.getUserId().getToken().equals(Utils.getCurrentUserToken(context)) && user.getName().contains(query)){
                             userList.add(userData.getValue(User.class));
                         }
                         adapter.notifyDataSetChanged();
@@ -126,7 +130,7 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
     }
 
     @Override
-    public boolean onQueryTextChange(String newText) {
+    public boolean onQueryTextChange(final String newText) {
         if (newText.length() > 0) {
             userList.clear();
             DatabaseHelper.userReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -134,7 +138,7 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     for (DataSnapshot userData : dataSnapshot.getChildren()){
                      User user = userData.getValue(User.class);
-                     if (!user.getToken().equals(Utils.getCurrentUserToken(getContext()))){
+                     if (!user.getUserId().getToken().equals(Utils.getCurrentUserToken(context)) && user.getName().contains(newText)){
                         userList.add(userData.getValue(User.class));
                      }
                      adapter.notifyDataSetChanged();

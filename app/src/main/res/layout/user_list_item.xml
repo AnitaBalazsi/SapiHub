@@ -19,7 +19,6 @@
             android:layout_height="wrap_content"
             android:layout_alignBottom="@id/profilePicture"
             android:layout_alignEnd="@id/profilePicture"
-            android:layout_marginEnd="3dp"
             android:visibility="invisible"
             android:src="@drawable/online_icon" />
     </RelativeLayout>
@@ -28,8 +27,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:layout_gravity="center_vertical"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="5dp"
         android:orientation="vertical">
         <TextView
             android:id="@+id/userName"

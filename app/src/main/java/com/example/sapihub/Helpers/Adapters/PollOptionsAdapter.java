@@ -1,6 +1,7 @@
 package com.example.sapihub.Helpers.Adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -13,16 +14,30 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.sapihub.Activities.ChatActivity;
+import com.example.sapihub.Activities.UserProfileActivity;
+import com.example.sapihub.Helpers.Database.DatabaseHelper;
+import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
+import com.example.sapihub.Model.Message;
 import com.example.sapihub.Model.PollAnswer;
+import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.database.DataSnapshot;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class PollOptionsAdapter extends RecyclerView.Adapter<PollOptionsAdapter.ListViewHolder> {
     private Context context;
@@ -95,25 +110,63 @@ public class PollOptionsAdapter extends RecyclerView.Adapter<PollOptionsAdapter.
         return ((users.size() * 100) / sum);
     }
 
-    private void loadUserImages(LinearLayout userLayout, List<String> users) {
-        int size = 3;
-        if (users.size() < 3){
+    private void loadUserImages(LinearLayout userLayout, final List<String> users) {
+        int size = 2;
+        if (users.size() < size){
             size = users.size();
         }
 
         for (int i = 0; i < size; i++){
             ImageView imageView = new ImageView(context);
             userLayout.addView(imageView);
-            Utils.loadProfilePicture(context,imageView,users.get(i),50,50);
+            DatabaseHelper.loadProfilePicture(context,imageView,users.get(i),50,50);
         }
 
-        if (users.size() > 3){
+        if (users.size() > size){
             TextView counter = new TextView(context);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             params.setMargins(10,5,0,0);
             counter.setLayoutParams(params);
-            counter.setText("+".concat(String.valueOf(users.size() - 3)));
+            counter.setText("+".concat(String.valueOf(users.size() - size)));
             userLayout.addView(counter);
+            counter.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context,R.style.BottomSheetDialog);
+                    bottomSheetDialog.setContentView(R.layout.user_list_dialog);
+                    bottomSheetDialog.setTitle(context.getString(R.string.sendForward));
+
+                    final RecyclerView recyclerView = bottomSheetDialog.findViewById(R.id.userList);
+                    recyclerView.setHasFixedSize(true);
+                    recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                    SearchView searchView = bottomSheetDialog.findViewById(R.id.searchView);
+                    searchView.setVisibility(View.GONE);
+
+                    final List<User> userList = new ArrayList<>();
+                    final UserListAdapter adapter = new UserListAdapter(context, userList, new UserListAdapter.UserClickListener() {
+                        @Override
+                        public void onUserClick(final int position) {
+                            Intent intent = new Intent(context, UserProfileActivity.class);
+                            intent.putExtra("userId", userList.get(position).getUserId().getToken());
+                            context.startActivity(intent);
+                        }
+                    });
+                    recyclerView.setAdapter(adapter);
+
+                    DatabaseHelper.getUsers(context, "", new FirebaseCallback() {
+                        @Override
+                        public void onCallback(Object object) {
+                            for (User user : (List<User>) object){
+                                if (users.contains(user.getUserId().getToken())){
+                                    userList.add(user);
+                                    adapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    });
+                    bottomSheetDialog.show();
+                }
+            });
         }
     }
 
@@ -146,7 +199,7 @@ public class PollOptionsAdapter extends RecyclerView.Adapter<PollOptionsAdapter.
                 }
             });
 
-            container.setOnClickListener(new View.OnClickListener() {
+            radioButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (TAG.equals(Utils.VIEW_POLL)){

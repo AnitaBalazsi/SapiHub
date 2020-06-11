@@ -34,6 +34,7 @@ public class ImageListAdapter extends RecyclerView.Adapter<ImageListAdapter.List
         this.imageClickListener = imageClickListener;
     }
 
+
     @NonNull
     @Override
     public ListViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

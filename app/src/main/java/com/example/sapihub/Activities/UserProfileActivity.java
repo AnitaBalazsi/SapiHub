@@ -62,7 +62,7 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
             }
         });
 
-        Utils.loadProfilePicture(this,profilePicture,userId,350,350);
+        DatabaseHelper.loadProfilePicture(this,profilePicture,userId,350,350);
     }
 
     private void initializeVariables() {

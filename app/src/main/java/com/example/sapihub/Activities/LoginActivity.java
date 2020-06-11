@@ -37,7 +37,7 @@ import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
     private EditText nameInput, passwordInput, yearInput;
-    private String token;
+    private Token token;
     private AlertDialog profileDataDialog;
     private Spinner degreeInput, departmentInput;
     private RadioGroup radioGroup;
@@ -89,7 +89,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         editor.putString("username",nameInput.getText().toString());
         editor.putString("password",passwordInput.getText().toString());
         editor.putBoolean("rememberMe",rememberMe.isChecked());
-        editor.putString("token",token);
+        editor.putString("token",token.getToken());
         editor.apply();
     }
 
@@ -98,14 +98,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         loadingDialog.show();
         final String username = nameInput.getText().toString();
         final String password = passwordInput.getText().toString();
-        String service = "moodle_mobile_app";
 
         MoodleAPI api = RetrofitClient.getRetrofit(MoodleAPI.BASE_URL).create(MoodleAPI.class);
-        api.loginUser(username,password,service).enqueue(new Callback<Token>() {
+        api.loginUser(username,password,MoodleAPI.service).enqueue(new Callback<Token>() {
             @Override
             public void onResponse(Call<Token> call, Response<Token> response) {
                 if (response.body().getToken() != null){
-                    token = response.body().getToken();
+                    token = response.body();
                     loadingDialog.dismiss();
                     saveUserData();
 

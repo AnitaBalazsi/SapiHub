@@ -9,6 +9,8 @@ import retrofit2.http.Headers;
 import retrofit2.http.POST;
 
 public interface FCMAPI {
+    String url = "https://fcm.googleapis.com/";
+
     @Headers(
             {
                     "Content-Type:application/json",

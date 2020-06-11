@@ -9,7 +9,6 @@
         android:id="@+id/date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
         android:textAlignment="center"
         android:visibility="gone"/>
 
@@ -23,7 +22,7 @@
         android:id="@+id/profilePicture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-            android:visibility="invisible" />
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/message"
@@ -31,17 +30,15 @@
             android:layout_height="wrap_content"
             android:background="@drawable/message_background_sender"
             android:textColor="@color/colorBlack"
-            android:layout_marginTop="2dp"
-            android:layout_marginStart="50dp"
             android:visibility="gone"
             android:autoLink="web"
+            android:layout_marginTop="10dp"
             android:linksClickable="true"
             android:padding="10dp"/>
 
         <io.github.ponnamkarthik.richlinkpreview.RichLinkView
             android:id="@+id/richLinkView"
             android:visibility="gone"
-            android:layout_marginStart="50dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
@@ -49,31 +46,12 @@
             android:id="@+id/messageImage"
             android:layout_width="250dp"
             android:layout_height="250dp"
-            android:layout_marginStart="50dp"
             android:adjustViewBounds="true"
+            android:layout_marginTop="10dp"
             android:visibility="gone"
             android:scaleType="fitEnd"
             android:paddingBottom="0dp"/>
 
-
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <VideoView
-                android:id="@+id/messageVideo"
-                android:layout_width="200dp"
-                android:layout_height="250dp"
-                android:layout_marginStart="50dp"
-                android:visibility="gone"/>
-
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:visibility="gone"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                />
-        </FrameLayout>
 
         <LinearLayout
             android:id="@+id/sharedPostLayout"
@@ -81,8 +59,8 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:padding="10dp"
+            android:layout_marginTop="10dp"
             android:background="@drawable/message_background_sender"
-            android:layout_marginStart="100dp"
             android:orientation="vertical">
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -93,19 +71,35 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="10dp"/>
-                <TextView
-                    android:id="@+id/postAuthorName"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_margin="5dp"
-                    android:layout_gravity="center"
-                    android:textStyle="bold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/postAuthorName"
+                        android:layout_gravity="center"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <TextView
+                        android:id="@+id/postDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"/>
+                </LinearLayout>
             </LinearLayout>
 
             <TextView
-                android:id="@+id/postContent"
+                android:id="@+id/postTitle"
                 android:padding="5dp"
-                android:layout_width="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textAlignment="center"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorGreen"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
     </LinearLayout>

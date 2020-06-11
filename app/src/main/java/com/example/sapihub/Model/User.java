@@ -2,7 +2,7 @@ package com.example.sapihub.Model;
 
 public class User {
     private String name;
-    private String token;
+    private Token userId;
     private String occupation;
     private String department;
     private String degree;
@@ -13,17 +13,17 @@ public class User {
     public User() {
     }
 
-    public User(String name, String token) {
+    public User(String name, Token token) {
         this.name = name;
-        this.token = token;
+        this.userId = token;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getToken() {
-        return token;
+    public Token getUserId() {
+        return userId;
     }
 
     public String getOccupation() {
