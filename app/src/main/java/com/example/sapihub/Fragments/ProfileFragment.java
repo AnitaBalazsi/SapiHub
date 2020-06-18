@@ -3,6 +3,7 @@ package com.example.sapihub.Fragments;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -49,6 +50,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private RecyclerView newsListView, savedNewsListView;
     private FirebaseRecyclerOptions<News> newsList;
     private ArrayList<String> savedNewsList = new ArrayList<>();
+    private static Context context;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -66,13 +68,14 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        context = getContext();
         initializeVariables();
         getUserData();
         getData(DatabaseHelper.newsReference);
         getSavedPosts(new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
-                savedNewsAdapter = new NewsListAdapter(newsList,savedNewsList,getContext(), Utils.SAVED_POST);
+                savedNewsAdapter = new NewsListAdapter(newsList,savedNewsList,context, Utils.SAVED_POST);
                 savedNewsListView.setAdapter(savedNewsAdapter);
                 savedNewsAdapter.startListening();
             }
@@ -80,7 +83,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     }
 
     private void getSavedPosts(final FirebaseCallback callback) {
-        DatabaseHelper.savedPostsReference.child(Utils.getCurrentUserToken(getContext())).addValueEventListener(new ValueEventListener() {
+        DatabaseHelper.savedPostsReference.child(Utils.getCurrentUserToken(context)).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 savedNewsList.clear();
@@ -115,7 +118,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        DatabaseHelper.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),350,350);
+        DatabaseHelper.loadProfilePicture(context,profilePicture,Utils.getCurrentUserToken(context),350,350);
     }
 
     private void initializeVariables() {
@@ -148,24 +151,24 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        LinearLayoutManager newsLayout = new LinearLayoutManager(getContext());
+        LinearLayoutManager newsLayout = new LinearLayoutManager(context);
         newsLayout.setReverseLayout(true);
         newsLayout.setStackFromEnd(true);
         newsListView.setLayoutManager(newsLayout);
 
-        LinearLayoutManager savedNewsLayout = new LinearLayoutManager(getContext());
+        LinearLayoutManager savedNewsLayout = new LinearLayoutManager(context);
         savedNewsLayout.setReverseLayout(true);
         savedNewsLayout.setStackFromEnd(true);
         savedNewsListView.setLayoutManager(savedNewsLayout);
 
-        loadingDialog = new ProgressDialog(getContext(), R.style.ProgressDialog);
+        loadingDialog = new ProgressDialog(context, R.style.ProgressDialog);
         loadingDialog.setCanceledOnTouchOutside(false);
         loadingDialog.setMessage(getString(R.string.loading));
     }
 
     private void getData(Query q){
         newsList = new FirebaseRecyclerOptions.Builder<News>().setQuery(q, News.class).build();
-        newsAdapter = new NewsListAdapter(newsList,null,getContext(), Utils.MY_POST);
+        newsAdapter = new NewsListAdapter(newsList,null,context, Utils.MY_POST);
         newsListView.setAdapter(newsAdapter);
         newsAdapter.startListening();
     }
@@ -176,9 +179,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     }
 
     private void showChangePictureDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),R.style.AlertDialogTheme);
-        String[] animals = {getString(R.string.deleteProfilePicture), getString(R.string.changeProfilePicture)};
-        builder.setItems(animals, new DialogInterface.OnClickListener() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context,R.style.AlertDialogTheme);
+        String[] options = {getString(R.string.deleteProfilePicture), getString(R.string.changeProfilePicture)};
+        builder.setItems(options, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
@@ -196,17 +199,17 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     }
 
     private void showConfirmationDialog() {
-        new AlertDialog.Builder(getContext(),R.style.AlertDialogTheme)
+        new AlertDialog.Builder(context,R.style.AlertDialogTheme)
                 .setTitle(getString(R.string.deleteProfilePicture))
                 .setMessage(getString(R.string.confirmImageDeletion))
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        DatabaseHelper.deleteProfilePicture(Utils.getCurrentUserToken(getContext()), new FirebaseCallback() {
+                        DatabaseHelper.deleteProfilePicture(Utils.getCurrentUserToken(context), new FirebaseCallback() {
                             @Override
                             public void onCallback(Object object) {
                                 //refresh imageview
-                                DatabaseHelper.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),350,350);
+                                DatabaseHelper.loadProfilePicture(context,profilePicture,Utils.getCurrentUserToken(context),350,350);
                             }
                         });
                     }})
@@ -230,11 +233,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             loadingDialog.setMessage(getString(R.string.uploadImage));
             loadingDialog.show();
 
-            DatabaseHelper.uploadProfilePicture(Utils.getCurrentUserToken(getContext()), imagePath, new FirebaseCallback() {
+            DatabaseHelper.uploadProfilePicture(Utils.getCurrentUserToken(context), imagePath, new FirebaseCallback() {
                 @Override
                 public void onCallback(Object object) {
                     loadingDialog.dismiss();
-                    DatabaseHelper.loadProfilePicture(getContext(),profilePicture,Utils.getCurrentUserToken(getContext()),400,400);
+                    DatabaseHelper.loadProfilePicture(context,profilePicture,Utils.getCurrentUserToken(context),400,400);
                 }
             });
 

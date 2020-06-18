@@ -2,6 +2,7 @@ package com.example.sapihub.Activities;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -19,8 +20,10 @@ import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.News;
 import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -29,24 +32,21 @@ import java.util.List;
 public class UserProfileActivity extends AppCompatActivity implements View.OnClickListener {
     private TextView username, department, degree, studyYear;
     private ImageView profilePicture, sendMessage;
-    private ProgressDialog loadingDialog;
     private String userId;
-    private NewsListAdapter newsAdapter;
     private RecyclerView newsListView;
-    private List<News> newsList = new ArrayList<>();
+    private FirebaseRecyclerOptions newsList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_profile);
 
-       // initializeVariables();
-       // getUserData();
-       // getData();
+        initializeVariables();
+        getUserData();
+        loadData(DatabaseHelper.newsReference);
     }
 
     private void getUserData() {
-        loadingDialog.show();
         DatabaseHelper.getUserData(userId, new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
@@ -63,6 +63,19 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
         });
 
         DatabaseHelper.loadProfilePicture(this,profilePicture,userId,350,350);
+        profilePicture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DatabaseHelper.getProfilePicture(userId, new FirebaseCallback() {
+                    @Override
+                    public void onCallback(Object object) {
+                        if (object != null){
+                            Utils.showImageDialog(UserProfileActivity.this,(Uri) object);
+                        }
+                    }
+                });
+            }
+        });
     }
 
     private void initializeVariables() {
@@ -81,35 +94,13 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
         newsLayout.setReverseLayout(true);
         newsLayout.setStackFromEnd(true);
         newsListView.setLayoutManager(newsLayout);
-       // newsAdapter = new NewsListAdapter("MyNews",newsList,this,null);
-        newsListView.setAdapter(newsAdapter);
-
-        loadingDialog = new ProgressDialog(this, R.style.ProgressDialog);
-        loadingDialog.setCanceledOnTouchOutside(false);
-        loadingDialog.setMessage(getString(R.string.loading));
     }
 
-    private void getData(){
-        DatabaseHelper.newsReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                newsList.clear();
-                for (DataSnapshot newsData : dataSnapshot.getChildren()){
-                    News news = newsData.getValue(News.class);
-                    if (news.getAuthor().equals(userId)){
-                        newsList.add(news);
-                        newsAdapter.notifyDataSetChanged();
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
-        loadingDialog.dismiss();
+    private void loadData(Query q){
+        newsList = new FirebaseRecyclerOptions.Builder<News>().setQuery(q, News.class).build();
+        NewsListAdapter adapter = new NewsListAdapter(newsList,this,Utils.PROFILE_FRAGMENT,userId);
+        newsListView.setAdapter(adapter);
+        adapter.startListening();
     }
 
     @Override

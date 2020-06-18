@@ -15,11 +15,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".Activities.SettingsActivity"></activity>
+        <activity android:name=".Activities.TimetableActivity" />
+        <activity android:name=".Activities.SettingsActivity" />
         <activity android:name=".Activities.DeadlinesActivity" />
         <activity
             android:name=".Activities.ChatActivity"
-            android:windowSoftInputMode="adjustPan" />
+            android:windowSoftInputMode="adjustResize" />
         <activity android:name=".Activities.UserProfileActivity" />
         <activity android:name=".Activities.NewsDetailsActivity" />
         <activity
@@ -50,7 +51,8 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <receiver android:name=".Helpers.AlarmReceiver"/>
+
+        <receiver android:name=".Helpers.AlarmReceiver" />
 
         <meta-data
             android:name="preloaded_fonts"

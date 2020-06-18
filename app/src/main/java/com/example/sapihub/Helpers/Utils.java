@@ -25,7 +25,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Activities.ChatActivity;
 import com.example.sapihub.Helpers.Adapters.UserListAdapter;
@@ -33,10 +32,6 @@ import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Model.Chat;
 import com.example.sapihub.Model.Message;
-import com.example.sapihub.Model.Notifications.FCMToken;
-import com.example.sapihub.Model.Notifications.NotificationData;
-import com.example.sapihub.Model.Notifications.NotificationResponse;
-import com.example.sapihub.Model.Notifications.NotificationSender;
 import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -48,14 +43,9 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import static android.os.Environment.DIRECTORY_DOWNLOADS;
 
@@ -66,6 +56,7 @@ public class Utils {
     public static final String MY_POST = "MY_POST";
     public static final String SAVED_POST = "SAVED_POST";
     public static final String NEWS_FRAGMENT = "NEWS_FRAGMENT";
+    public static final String PROFILE_FRAGMENT = "PROFILE_FRAGMENT";
 
     public static void showSnackbar (View view, String text, int color){
         Snackbar snackbar = Snackbar.make(view, text, Snackbar.LENGTH_LONG);
@@ -119,7 +110,7 @@ public class Utils {
         return DateUtils.getRelativeTimeSpanString(date.getTime() , System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL);
     }
     public static void showImageDialog(final Context context, final Uri imageUri) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context,android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen);
         final ImageView imageView = new ImageView(context);
         builder.setView(imageView);
         final AlertDialog imageDialog = builder.create();
@@ -132,11 +123,11 @@ public class Utils {
                 builder.setItems(options, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (which == 0){
-                            downloadFile(context,imageUri.toString(), imageUri);
+                        if (which == 0) {
+                            downloadFile(context, imageUri.toString(), imageUri);
                             imageDialog.dismiss();
                         } else {
-                            shareInChat(context, imageUri.toString(), "image", null,new FirebaseCallback() {
+                            shareInChat(context, imageUri.toString(), "image", null, new FirebaseCallback() {
                                 @Override
                                 public void onCallback(Object object) {
                                     imageDialog.dismiss();
@@ -154,7 +145,7 @@ public class Utils {
             }
         });
 
-        loadImage(context,imageUri,imageView,3500,2000);
+        loadImage(context, imageUri, imageView, 3500, 2000);
 
         imageDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
         imageDialog.show();

@@ -5,16 +5,20 @@ import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -30,6 +34,7 @@ import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
 import com.example.sapihub.Model.Chat;
 import com.example.sapihub.Model.Message;
+import com.example.sapihub.Model.Notifications.NotificationData;
 import com.example.sapihub.Model.User;
 import com.example.sapihub.R;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
@@ -40,6 +45,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -56,7 +62,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     private ValueEventListener eventListener;
     private Uri cameraImageUri;
     private Chat chatRoom;
-    private static int messageCounter = 15;
 
     private static int FROM_GALLERY = 1;
     private static int IMAGE_FROM_CAMERA = 2;
@@ -94,7 +99,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                     });
                 }
                 getUserData();
-                getMessages(messageCounter);
+                getMessages();
                 checkIfSeen();
             }
         });
@@ -110,7 +115,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                     if (message.getReceiver().equals(currentUserId) && message.getSender().equals(userId)){
                         //set message as seen in database and list
                         messageData.getRef().child("seen").setValue(true);
-                        adapter.notifyDataSetChanged();
                     }
                 }
             }
@@ -158,6 +162,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         username = findViewById(R.id.userName);
         isTyping = findViewById(R.id.isTyping);
         profilePicture = findViewById(R.id.profilePicture);
+        profilePicture.setOnClickListener(this);
         onlineIcon = findViewById(R.id.onlineIcon);
         messageInput = findViewById(R.id.messageInput);
         messageInput.addTextChangedListener(this);
@@ -173,8 +178,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         showOptions.setOnClickListener(this);
 
         chatView = findViewById(R.id.chatView);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setStackFromEnd(true);
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         chatView.setLayoutManager(layoutManager);
     }
 
@@ -201,6 +205,11 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                     layout.setVisibility(View.VISIBLE);
                 }
 
+                break;
+            case R.id.profilePicture:
+                Intent profileIntent = new Intent(this, UserProfileActivity.class);
+                profileIntent.putExtra("userId",userId);
+                startActivity(profileIntent);
                 break;
         }
     }
@@ -258,18 +267,27 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private String fileName(Uri uri) {
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+        cursor.moveToFirst();
+        String name = cursor.getString(nameIndex);
+        cursor.close();
+        return name;
+    }
+
     private void uploadData(Uri data, final String type) {
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage(getString(R.string.uploading));
         progressDialog.show();
 
         final String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-        DatabaseHelper.addChatAttachment(currentUserId.concat(date), data, new FirebaseCallback() {
+        DatabaseHelper.addChatAttachment(currentUserId.concat(date),fileName(data), data, new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
                 if (object != null){
                     String downloadUri = object.toString();
-                    chatRoom.addMessage(new Message(currentUserId,userId,downloadUri,date,type,false)); //todo
+                    chatRoom.addMessage(new Message(currentUserId,userId,downloadUri,date,type,false));
                     DatabaseHelper.addMessage(chatId, chatRoom.getMessages(), new FirebaseCallback() {
                         @Override
                         public void onCallback(Object object) {
@@ -281,13 +299,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        DatabaseHelper.getUserData(currentUserId, new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                User user = (User) object;
-                //todo send notif
-            }
-        });
+        sendNotification();
     }
 
     private void sendTextMessage() {
@@ -304,23 +316,28 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 public void onCallback(Object object) {
                     scrollToBottom();
                 }
-            }); //todo
-
-            DatabaseHelper.getUserData(currentUserId, new FirebaseCallback() {
-                @Override
-                public void onCallback(Object object) {
-                    User user = (User) object;
-                    //todo send notif
-                }
             });
+
+            sendNotification();
         }
 
         messageInput.setText(null);
     }
 
-    private void getMessages(int messageCounter){
-        Query q = DatabaseHelper.chatReference.child(chatId).child("messages").limitToLast(messageCounter);
-        messageList = new FirebaseRecyclerOptions.Builder<Message>().setQuery(q,Message.class).build();
+    private void sendNotification() {
+        DatabaseHelper.getUserData(currentUserId, new FirebaseCallback() {
+            @Override
+            public void onCallback(Object object) {
+                User user = (User) object;
+                NotificationData notificationData = new NotificationData(userId,getString(R.string.newMessage),user.getName().concat(" ").concat(getString(R.string.sentAMessage)), Utils.dateToString(Calendar.getInstance().getTime()));
+                DatabaseHelper.sendNotification(ChatActivity.this,notificationData);
+            }
+        });
+    }
+
+    private void getMessages(){
+        Query q = DatabaseHelper.chatReference.child(chatId).child("messages");
+        messageList = new FirebaseRecyclerOptions.Builder<Message>().setQuery(q, Message.class).build();
         adapter = new ChatAdapter(messageList,this);
         chatView.setAdapter(adapter);
         adapter.startListening();
@@ -334,7 +351,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             public void run() {
                 chatView.scrollToPosition(adapter.getItemCount() - 1);
             }
-        },3000);
+        },200);
     }
 
 

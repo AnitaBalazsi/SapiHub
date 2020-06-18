@@ -2,8 +2,6 @@ package com.example.sapihub.Model.Notifications;
 
 import androidx.annotation.Nullable;
 
-import com.example.sapihub.Model.News;
-
 public class NotificationData {
     private String user;
     private String title;

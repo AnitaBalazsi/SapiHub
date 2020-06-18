@@ -1,5 +1,6 @@
 package com.example.sapihub.Helpers.Adapters;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -62,12 +63,20 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
     private String selectedCaption = "";
     private String searchQuery = "";
     private ArrayList<String> savedPostList;
+    private String userToken;
 
     public NewsListAdapter(@NonNull FirebaseRecyclerOptions<News> options, ArrayList<String> savedPostList, Context context, String TAG) {
         super(options);
         this.context = context;
         this.savedPostList = savedPostList;
         this.TAG = TAG;
+    }
+
+    public NewsListAdapter(@NonNull FirebaseRecyclerOptions<News> options, Context context, String TAG, String userToken) {
+        super(options);
+        this.context = context;
+        this.TAG = TAG;
+        this.userToken = userToken;
     }
 
     public void changeCaption(String caption){
@@ -178,6 +187,12 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
                     }
                 }
                 break;
+            case Utils.PROFILE_FRAGMENT:
+                if (model.getAuthor().equals(userToken)){
+                    populateViewHolder(holder,model);
+                } else {
+                    hideItem(holder);
+                }
         }
     }
 
@@ -382,7 +397,7 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
                             if (!c.getAuthor().equals(user.getUserId().getToken())){
                                 //send notification to other commenters
                                 NotificationData notificationData = new NotificationData(c.getAuthor(),selectedNews.getTitle(),user.getName().concat(" ").concat(context.getString(R.string.commentNotification)),Utils.dateToString(Calendar.getInstance().getTime()));
-                                DatabaseHelper.sendNotification(notificationData);
+                                DatabaseHelper.sendNotification(context,notificationData);
                                 if (c.getAuthor().equals(selectedNews.getAuthor())){
                                     containsAuthor = true;
                                 }
@@ -392,7 +407,7 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
                         //send notification to author (if the author not commented)
                         if (!containsAuthor){
                             NotificationData notificationData = new NotificationData(selectedNews.getAuthor(),selectedNews.getTitle(),user.getName().concat(" ").concat(context.getString(R.string.commentNotification)),Utils.dateToString(Calendar.getInstance().getTime()));
-                            DatabaseHelper.sendNotification(notificationData);
+                            DatabaseHelper.sendNotification(context,notificationData);
                         }
                     }
                 });
@@ -531,7 +546,7 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
         });
     }
 
-    private void loadImage(News news, String imageName, final LinearLayout linearLayout) {
+    private void loadImage(final News news, String imageName, final LinearLayout linearLayout) {
         final ImageView imageView = new ImageView(context);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.setMargins(0, 0, 10, 0);
@@ -542,8 +557,8 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
         if (imageName != null){
             DatabaseHelper.getNewsAttachment(news, imageName, new FirebaseCallback() {
                 @Override
-                public void onCallback(Object object) {
-                    if (object != null){
+                public void onCallback(final Object object) {
+                    if (object != null && !((Activity)context).isDestroyed()){
                         final Uri uri = (Uri) object;
                         Glide.with(context).load(uri.toString())
                                 .apply(new RequestOptions().override(500, 300))
@@ -552,7 +567,7 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
                         imageView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Utils.showImageDialog(context,uri);
+                                Utils.showImageDialog(context, (Uri) object);
                             }
                         });
                     }

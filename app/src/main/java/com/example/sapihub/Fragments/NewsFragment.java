@@ -39,14 +39,13 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NewsFragment extends Fragment implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener, SearchView.OnQueryTextListener, AdapterView.OnItemSelectedListener {
+public class NewsFragment extends Fragment implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener, SearchView.OnQueryTextListener{
     private NewsListAdapter adapter;
     private ImageView addNews;
     private FirebaseRecyclerOptions<News> newsList;
     private SearchView searchView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView listView;
-    private Spinner filterNews;
     private User user;
     private LinearLayout captionContainer;
     private static Context context;
@@ -70,7 +69,6 @@ public class NewsFragment extends Fragment implements View.OnClickListener, Swip
         context = getContext();
         initializeVariables();
         loadCurrentUser();
-
     }
 
     private void loadCurrentUser() {
@@ -83,7 +81,10 @@ public class NewsFragment extends Fragment implements View.OnClickListener, Swip
                 if (user.getDegree() != null){
                     captions.add(user.getDegree());
                 }
-                loadCaptions(captions);
+
+                if (captionContainer.getChildCount() == 0){
+                    loadCaptions(captions);
+                }
             }
         });
     }
@@ -148,8 +149,6 @@ public class NewsFragment extends Fragment implements View.OnClickListener, Swip
         captionContainer = getView().findViewById(R.id.captionContainer);
         addNews = getView().findViewById(R.id.addNews);
         addNews.setOnClickListener(this);
-        filterNews = getView().findViewById(R.id.filterNews);
-        filterNews.setOnItemSelectedListener(this);
 
         swipeRefreshLayout = getView().findViewById(R.id.swipeLayout);
         swipeRefreshLayout.setOnRefreshListener(this);
@@ -231,19 +230,5 @@ public class NewsFragment extends Fragment implements View.OnClickListener, Swip
     public void onResume() {
         super.onResume();
         listView.smoothScrollToPosition(adapter.getItemCount());
-    }
-
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if (parent.getItemAtPosition(position).toString().equals(getString(R.string.lastPost))){
-            loadData(DatabaseHelper.newsReference);
-        } else {
-            loadData(DatabaseHelper.newsReference.orderByChild("lastComment"));
-        }
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-        loadData(DatabaseHelper.newsReference);
     }
 }

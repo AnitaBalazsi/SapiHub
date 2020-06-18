@@ -152,13 +152,16 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
             SharedPreferences sharedPreferences = getSharedPreferences("UserData", Context.MODE_PRIVATE);
             sharedPreferences.edit().remove("username").apply();
             sharedPreferences.edit().remove("password").apply();
+            DatabaseHelper.deleteFCMToken(Utils.getCurrentUserToken(this));
             startActivity(new Intent(HomeActivity.this,LoginActivity.class));
-            //todo
-
         }
 
         if (fragmentName.equals(getString(R.string.deadlines))){
             startActivity(new Intent(HomeActivity.this,DeadlinesActivity.class));
+        }
+
+        if (fragmentName.equals(getString(R.string.timeTable))){
+            startActivity(new Intent(HomeActivity.this, TimetableActivity.class));
         }
 
         if (fragmentName.equals(getString(R.string.settings))){

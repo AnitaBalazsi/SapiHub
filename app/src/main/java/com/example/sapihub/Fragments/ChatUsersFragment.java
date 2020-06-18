@@ -69,7 +69,7 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
                 userList.clear();
                 for (DataSnapshot userData : dataSnapshot.getChildren()){
                     User user = userData.getValue(User.class);
-                    if (!user.getUserId().getToken().equals(Utils.getCurrentUserToken(getContext()))){
+                    if (!user.getUserId().getToken().equals(Utils.getCurrentUserToken(context))){
                         userList.add(userData.getValue(User.class));
                     }
                     adapter.notifyDataSetChanged();
@@ -86,9 +86,9 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
     private void initializeVariables() {
         recyclerView = getView().findViewById(R.id.userListView);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-        adapter = new UserListAdapter(getContext(),userList,this);
+        adapter = new UserListAdapter(context,userList,this);
         recyclerView.setAdapter(adapter);
 
         searchView = getView().findViewById(R.id.searchView);

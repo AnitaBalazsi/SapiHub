@@ -103,7 +103,7 @@ public class CommentListAdapter extends RecyclerView.Adapter<CommentListAdapter.
                     imageView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Utils.showImageDialog(context,uri);
+                            //Utils.showImageDialog(context,null); //todo
                         }
                     });
                 }

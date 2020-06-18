@@ -104,6 +104,8 @@
     <string name="postReceived">megosztott egy bejegyzést</string>
     <string name="fileSent">Megosztottál egy fájlt</string>
     <string name="fileReceived">megosztott egy fájlt</string>
+    <string name="newMessage">Új üzenet</string>
+    <string name="sentAMessage">üzenetet küldött!</string>
     <string name="users">Felhasználók</string>
     <string name="online">online</string>
     <string name="offline">offline</string>

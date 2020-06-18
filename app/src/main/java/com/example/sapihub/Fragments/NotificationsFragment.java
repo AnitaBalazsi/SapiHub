@@ -1,7 +1,10 @@
 package com.example.sapihub.Fragments;
 
 
+import android.app.Notification;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,9 +19,13 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.sapihub.Activities.DeadlinesActivity;
+import com.example.sapihub.Activities.NewsDetailsActivity;
 import com.example.sapihub.Helpers.Adapters.NotificationListAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
+import com.example.sapihub.Helpers.Database.FirebaseCallback;
 import com.example.sapihub.Helpers.Utils;
+import com.example.sapihub.Model.News;
 import com.example.sapihub.Model.Notifications.NotificationData;
 import com.example.sapihub.R;
 import com.google.firebase.database.DataSnapshot;
@@ -30,10 +37,12 @@ import java.util.ArrayList;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NotificationsFragment extends Fragment {
+public class NotificationsFragment extends Fragment implements NotificationListAdapter.ListViewHolder.NotificationClickListener {
     private ArrayList<NotificationData> notificationList = new ArrayList<>();
     private String user;
     private NotificationListAdapter adapter;
+
+    private static Context context;
 
     public NotificationsFragment() {
         // Required empty public constructor
@@ -50,24 +59,26 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        context = getContext();
         initializeVariables();
         getData();
     }
 
     private void initializeVariables() {
         RecyclerView listView = getView().findViewById(R.id.notificationList);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         layoutManager.setReverseLayout(true);
         listView.setLayoutManager(layoutManager);
 
-        adapter = new NotificationListAdapter(getContext(), notificationList);
+        adapter = new NotificationListAdapter(context, notificationList,this);
         listView.setAdapter(adapter);
 
         new ItemTouchHelper(itemTouch).attachToRecyclerView(listView);
     }
 
     private void getData(){
-        user = Utils.getCurrentUserToken(getContext());
+        user = Utils.getCurrentUserToken(context);
         DatabaseHelper.notificationsReference.child(user).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -90,20 +101,21 @@ public class NotificationsFragment extends Fragment {
 
     private boolean checkNotification(NotificationData notificationData) {
         String notificationText = notificationData.getTitle();
-        if (notificationText.contains(getString(R.string.newPostNotification))){
-            if (Utils.checkIfEnabled(getString(R.string.postNotification),getContext())){
+        if (notificationText.contains(context.getString(R.string.newPostNotification))){
+            if (Utils.checkIfEnabled(context.getString(R.string.postNotification),context)){
                 return true;
             }
         }
 
-        if (notificationData.getBody().contains(getString(R.string.commentNotification))){
-            if (Utils.checkIfEnabled(getString(R.string.commentNotifSetting),getContext())){
+        if (notificationData.getBody().contains(context.getString(R.string.commentNotification)) ||
+            notificationData.getBody().contains(getString(R.string.likeNotification))){
+            if (Utils.checkIfEnabled(context.getString(R.string.commentNotifSetting),context)){
                 return true;
             }
         }
 
-        if (notificationText.contains(getString(R.string.upcomingEvent))){
-            if (Utils.checkIfEnabled(getString(R.string.eventNotification),getContext())){
+        if (notificationText.contains(context.getString(R.string.upcomingEvent))){
+            if (Utils.checkIfEnabled(context.getString(R.string.eventNotification),context)){
                 return true;
             }
         }
@@ -124,4 +136,26 @@ public class NotificationsFragment extends Fragment {
             adapter.notifyDataSetChanged();
         }
     };
+
+    @Override
+    public void onNotificationClick(int position) {
+        NotificationData notificationData = notificationList.get(position);
+        if (notificationData.getTitle().contains(context.getString(R.string.upcomingEvent))){
+            startActivity(new Intent(context, DeadlinesActivity.class));
+        }
+
+        if (notificationData.getBody().contains(context.getString(R.string.commentNotification)) ||
+                notificationData.getBody().contains(getString(R.string.likeNotification)) ||
+                notificationData.getTitle().contains(context.getString(R.string.newPostNotification))){
+            DatabaseHelper.getNews(notificationData.getTitle(), Utils.getCurrentUserToken(context), new FirebaseCallback() {
+                @Override
+                public void onCallback(Object object) {
+                    News news = (News) object;
+                    Intent openDetails = new Intent(context, NewsDetailsActivity.class);
+                    openDetails.putExtra("selectedNews", news);
+                    context.startActivity(openDetails);
+                }
+            });
+        }
+    }
 }

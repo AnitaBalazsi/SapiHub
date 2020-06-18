@@ -143,7 +143,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
                             imageView.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    Utils.showImageDialog(NewsDetailsActivity.this, (Uri) object);
+                                    //todo dialog
                                 }
                             });
                         }
@@ -192,7 +192,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
 
             @Override
             public void onViewImage(int position) {
-                Utils.showImageDialog(NewsDetailsActivity.this,commentImageList.get(position));
+                //Utils.showImageDialog(NewsDetailsActivity.this,null); //todo
             }
         }));
 
@@ -374,7 +374,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
                     if (!c.getAuthor().equals(user.getUserId().getToken())){
                         //send notification to other commenters
                         NotificationData notificationData = new NotificationData(c.getAuthor(),selectedNews.getTitle(),user.getName().concat(" ").concat(getString(R.string.commentNotification)),Utils.dateToString(Calendar.getInstance().getTime()));
-                        DatabaseHelper.sendNotification(notificationData);
+                        DatabaseHelper.sendNotification(NewsDetailsActivity.this,notificationData);
                         if (c.getAuthor().equals(selectedNews.getAuthor())){
                             containsAuthor = true;
                         }
@@ -384,7 +384,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
                 //send notification to author (if the author not commented)
                 if (!containsAuthor){
                     NotificationData notificationData = new NotificationData(selectedNews.getAuthor(),selectedNews.getTitle(),user.getName().concat(" ").concat(getString(R.string.commentNotification)),Utils.dateToString(Calendar.getInstance().getTime()));
-                    DatabaseHelper.sendNotification(notificationData);
+                    DatabaseHelper.sendNotification(NewsDetailsActivity.this,notificationData);
                 }
             }
         });
@@ -451,7 +451,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
                     public void onCallback(Object object) {
                         User user = (User) object;
                         NotificationData notificationData = new NotificationData(commentList.get(position).getAuthor(),selectedNews.getTitle(), user.getName().concat(" ").concat(getString(R.string.likeNotification)),Utils.dateToString(Calendar.getInstance().getTime()));
-                        DatabaseHelper.sendNotification(notificationData);
+                        DatabaseHelper.sendNotification(NewsDetailsActivity.this, notificationData);
                     }
                 });
             }

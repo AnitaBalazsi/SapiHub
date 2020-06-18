@@ -1,6 +1,7 @@
 package com.example.sapihub.Fragments;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -44,6 +45,8 @@ public class ChatsFragment extends Fragment implements ChatListAdapter.ContactCl
     private List<Chat> chatList = new ArrayList<>();
     private ChatListAdapter adapter;
 
+    private static Context context;
+
     public ChatsFragment() {
         // Required empty public constructor
     }
@@ -60,11 +63,13 @@ public class ChatsFragment extends Fragment implements ChatListAdapter.ContactCl
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        DatabaseHelper.saveFCMToken(new FCMToken(FirebaseInstanceId.getInstance().getToken()), Utils.getCurrentUserToken(getContext()));
+        context = getContext();
+        DatabaseHelper.saveFCMToken(new FCMToken(FirebaseInstanceId.getInstance().getToken()), Utils.getCurrentUserToken((context)));
         initializeVariables();
         getMessageList(new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
+                //sort messages by date
                 Collections.sort(chatList, Collections.reverseOrder(new Comparator<Chat>() {
                     @Override
                     public int compare(Chat o1, Chat o2) {
@@ -79,21 +84,20 @@ public class ChatsFragment extends Fragment implements ChatListAdapter.ContactCl
                     }
                 }));
                 adapter.notifyDataSetChanged();
-                //TODO
             }
         });
 
     }
 
     private void initializeVariables() {
-        currentUser = Utils.getCurrentUserToken(getContext());
+        currentUser = Utils.getCurrentUserToken(context);
 
         chatListView = getView().findViewById(R.id.chatListView);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         chatListView.setLayoutManager(layoutManager);
-        chatListView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
+        chatListView.addItemDecoration(new DividerItemDecoration(context,DividerItemDecoration.VERTICAL));
 
-        adapter = new ChatListAdapter(chatList,getContext(),this);
+        adapter = new ChatListAdapter(chatList,context,this);
         chatListView.setAdapter(adapter);
     }
 
@@ -121,7 +125,7 @@ public class ChatsFragment extends Fragment implements ChatListAdapter.ContactCl
     @Override
     public void onContactClick(int position) {
         for (String user : chatList.get(position).getUsers()){
-            if (!user.equals(Utils.getCurrentUserToken(getContext()))){
+            if (!user.equals(Utils.getCurrentUserToken(context))){
                 Intent intent = new Intent(getActivity(), ChatActivity.class);
                 intent.putExtra("userId",user);
                 startActivity(intent);

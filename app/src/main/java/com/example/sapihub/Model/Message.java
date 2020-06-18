@@ -1,5 +1,7 @@
 package com.example.sapihub.Model;
 
+import androidx.annotation.Nullable;
+
 public class Message {
     private String sender;
     private String receiver;
@@ -42,4 +44,18 @@ public class Message {
 
     public boolean isSeen() { return seen; }
 
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        Message message = (Message) obj;
+        if (this.getClass() != obj.getClass()) return false;
+        if (this.getContent().equals(message.getContent()) &&
+                this.getType().equals(message.getType()) &&
+                this.getDate().equals(message.getDate()) &&
+                this.getSender().equals(message.getSender()) &&
+                this.getReceiver().equals(message.getReceiver())){
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

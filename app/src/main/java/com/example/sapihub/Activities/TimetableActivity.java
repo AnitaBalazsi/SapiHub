@@ -1,44 +1,27 @@
-package com.example.sapihub.Fragments;
+package com.example.sapihub.Activities;
 
+import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ProgressBar;
 
 import com.example.sapihub.R;
 
-/**
- * A simple {@link Fragment} subclass.
- */
-public class TimetableFragment extends Fragment {
+public class TimetableActivity extends AppCompatActivity {
     private final String BASE_URL = "https://sapientia-emte.edupage.org/timetable/view.php?num=126";
     private WebView webView;
-
-    public TimetableFragment() {
-        // Required empty public constructor
-    }
-
+    private ProgressBar loading;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_timetable, container, false);
-    }
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_timetable);
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        webView = getView().findViewById(R.id.mWebView);
+        webView = findViewById(R.id.mWebView);
+        loading = findViewById(R.id.loadingBar);
         loadTimeTable();
     }
 
@@ -55,6 +38,7 @@ public class TimetableFragment extends Fragment {
                         "document.getElementById('skin_Div_11').style.display='none'; " +
                         "})()");
                 webView.setVisibility(View.VISIBLE);
+                loading.setVisibility(View.GONE );
             }
         });
         webView.loadUrl(BASE_URL);

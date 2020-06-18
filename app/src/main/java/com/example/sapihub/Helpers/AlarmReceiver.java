@@ -16,6 +16,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         String date = intent.getStringExtra("date");
 
         NotificationData notificationData = new NotificationData(user,context.getString(R.string.upcomingEvent),event,date);
-        DatabaseHelper.sendNotification(notificationData);
+        DatabaseHelper.sendNotification(context,notificationData);
     }
 }

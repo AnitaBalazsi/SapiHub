@@ -58,6 +58,7 @@
                     android:id="@+id/sendMessage"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="end"
                     android:src="@drawable/ic_bottom_messages"/>
             </LinearLayout>
         </LinearLayout>

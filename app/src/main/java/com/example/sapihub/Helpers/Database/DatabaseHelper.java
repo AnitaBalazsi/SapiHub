@@ -1,5 +1,6 @@
 package com.example.sapihub.Helpers.Database;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
@@ -54,7 +55,7 @@ public class DatabaseHelper {
 
     public static StorageReference profilePictureRef = FirebaseStorage.getInstance().getReference("Profile pictures");
     public static StorageReference newsAttachmentsRef = FirebaseStorage.getInstance().getReference("News attachments");
-    public static StorageReference chatAttachments = FirebaseStorage.getInstance().getReference("Chat pictures");
+    public static StorageReference chatAttachments = FirebaseStorage.getInstance().getReference("Chat attachments");
     public static StorageReference commentAttachments = FirebaseStorage.getInstance().getReference("Comment attachments");
 
     public static void isUserStored(final String token, final FirebaseCallback callback){
@@ -230,6 +231,26 @@ public class DatabaseHelper {
         });
     }
 
+
+    public static void getNews(final String title, final String author, final FirebaseCallback callback){
+        newsReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot newsData : dataSnapshot.getChildren()){
+                    News news = newsData.getValue(News.class);
+                    if (news.getTitle().equals(title) && news.getAuthor().equals(author)){
+                        callback.onCallback(news);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d("getNews",databaseError.getMessage());
+            }
+        });
+    }
+
     public static void isSaved(String userToken, final String newsKey, final FirebaseCallback callback){
         savedPostsReference.child(userToken).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -366,12 +387,12 @@ public class DatabaseHelper {
         });
     }
 
-    public static void addChatAttachment(final String id, Uri path, final FirebaseCallback callback){
-        chatAttachments.child(id).putFile(path)
+    public static void addChatAttachment(final String id, final String fileName, Uri path, final FirebaseCallback callback){
+        chatAttachments.child(id).child(fileName).putFile(path)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        chatAttachments.child(id).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        chatAttachments.child(id).child(fileName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
                                 callback.onCallback(uri);
@@ -421,6 +442,10 @@ public class DatabaseHelper {
         tokensReference.child(user).setValue(token);
     }
 
+    public static void deleteFCMToken(String user){
+        tokensReference.child(user).removeValue();
+    }
+
     public static void changeStatus(String userId, String status){
         userReference.child(userId).child("status").setValue(status);
     }
@@ -448,27 +473,29 @@ public class DatabaseHelper {
     }
 
     public static void loadProfilePicture(final Context context, final ImageView imageView, String userId, final int width, final int height){
-        DatabaseHelper.getProfilePicture(userId, new FirebaseCallback() {
-            @Override
-            public void onCallback(Object object) {
-                if (object != null){
-                    Uri imageUri = (Uri) object;
-                    Glide.with(context).load(imageUri.toString())
-                            .circleCrop()
-                            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                            .apply(new RequestOptions().override(width, height))
-                            .placeholder(context.getDrawable(R.drawable.ic_account_circle))
-                            .into(imageView);
-                } else {
-                    imageView.setImageDrawable(context.getDrawable(R.drawable.ic_account_circle));
-                    imageView.getLayoutParams().height = height;
-                    imageView.getLayoutParams().width = width;
+        if (context != null){
+            DatabaseHelper.getProfilePicture(userId, new FirebaseCallback() {
+                @Override
+                public void onCallback(Object object) {
+                    if (object != null && !((Activity)context).isDestroyed()){
+                        Uri imageUri = (Uri) object;
+                        Glide.with(context).load(imageUri.toString())
+                                .circleCrop()
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .apply(new RequestOptions().override(width, height))
+                                .placeholder(context.getDrawable(R.drawable.ic_account_circle))
+                                .into(imageView);
+                    } else {
+                        imageView.setImageDrawable(context.getDrawable(R.drawable.ic_account_circle));
+                        imageView.getLayoutParams().height = height;
+                        imageView.getLayoutParams().width = width;
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
-    public static void sendNotification(final NotificationData notificationData){
+    public static void sendNotification(final Context context, final NotificationData notificationData){
         DatabaseHelper.tokensReference.orderByKey().equalTo(notificationData.getUser()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -479,7 +506,8 @@ public class DatabaseHelper {
                     api.sendNotification(sender).enqueue(new Callback<NotificationResponse>() {
                         @Override
                         public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
-                            addNotification(notificationData.getUser(),notificationData);
+                            if (!notificationData.getTitle().contains(context.getString(R.string.newMessage))){
+                            addNotification(notificationData.getUser(),notificationData);}
                         }
 
                         @Override

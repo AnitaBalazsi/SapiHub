@@ -172,7 +172,7 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         if (captionList.contains(caption)){
                             captionList.remove(caption);
-                            textView.setTextColor(getResources().getColor(android.R.color.darker_gray));
+                            textView.setTextColor(getResources().getColor(android.R.color.tab_indicator_text));
                             textView.setBackground(getDrawable(R.drawable.caption_background_white));
                         } else {
                             captionList.add(caption);
@@ -227,7 +227,7 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
                         textView.setTextColor(getResources().getColor(R.color.colorWhite));
                         textView.setBackground(getDrawable(R.drawable.caption_background_green));
                     } else {
-                        textView.setTextColor(getResources().getColor(android.R.color.darker_gray));
+                        textView.setTextColor(getResources().getColor(android.R.color.tab_indicator_text));
                         textView.setBackground(getDrawable(R.drawable.caption_background_white));
                     }
                 }
@@ -480,9 +480,9 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             if (newsId == null){
-                DatabaseHelper.addNews(new News(newsTitle, date, newsContent, Utils.getCurrentUserToken(this), null,images,files,polls, captionList));
+                DatabaseHelper.addNews(new News(newsTitle, date, newsContent, Utils.getCurrentUserToken(this),images,files,polls, captionList));
             } else {
-                DatabaseHelper.modifyNews(newsId,new News(newsTitle, date, newsContent, Utils.getCurrentUserToken(this), null, images,files,polls, captionList));
+                DatabaseHelper.modifyNews(newsId,new News(newsTitle, date, newsContent, Utils.getCurrentUserToken(this), images,files,polls, captionList));
             }
 
             if (isFinished[0] && isFinished[1]){
@@ -510,7 +510,7 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
                     if (!caption.isEmpty()){
                         caption = "(".concat(caption).concat(")");
                         NotificationData notificationData = new NotificationData(user.getUserId().getToken(),getString(R.string.newPostNotification).concat(" ").concat(caption),newsTitle, Utils.dateToString(Calendar.getInstance().getTime()));
-                        DatabaseHelper.sendNotification(notificationData);
+                        DatabaseHelper.sendNotification(AddNewsActivity.this,notificationData);
                     }
                 }
             }
@@ -593,7 +593,7 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void onViewImage(int position) {
-        Utils.showImageDialog(this,imageList.get(position));
+        //Utils.showImageDialog(this,null); //todo
     }
 
     @Override
