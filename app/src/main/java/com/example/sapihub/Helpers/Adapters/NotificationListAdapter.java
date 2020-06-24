@@ -42,7 +42,7 @@ public class NotificationListAdapter extends RecyclerView.Adapter<NotificationLi
         holder.text.setText(notificationsList.get(position).getTitle().concat(" ").concat(notificationsList.get(position).getBody()));
 
         try {
-            holder.date.setText(Utils.getRelativeDate(Utils.stringToDate(notificationsList.get(position).getDate())));
+                holder.date.setText(Utils.getRelativeDate(Utils.stringToDate(notificationsList.get(position).getDate())));
         } catch (ParseException e) {
             e.printStackTrace();
         }

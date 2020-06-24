@@ -1,8 +1,6 @@
 package com.example.sapihub.Fragments;
 
 
-import android.app.Notification;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,7 +12,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -102,20 +99,20 @@ public class NotificationsFragment extends Fragment implements NotificationListA
     private boolean checkNotification(NotificationData notificationData) {
         String notificationText = notificationData.getTitle();
         if (notificationText.contains(context.getString(R.string.newPostNotification))){
-            if (Utils.checkIfEnabled(context.getString(R.string.postNotification),context)){
+            if (Utils.checkIfNotificationEnabled(context.getString(R.string.postNotification),context)){
                 return true;
             }
         }
 
         if (notificationData.getBody().contains(context.getString(R.string.commentNotification)) ||
             notificationData.getBody().contains(getString(R.string.likeNotification))){
-            if (Utils.checkIfEnabled(context.getString(R.string.commentNotifSetting),context)){
+            if (Utils.checkIfNotificationEnabled(context.getString(R.string.commentNotifSetting),context)){
                 return true;
             }
         }
 
         if (notificationText.contains(context.getString(R.string.upcomingEvent))){
-            if (Utils.checkIfEnabled(context.getString(R.string.eventNotification),context)){
+            if (Utils.checkIfNotificationEnabled(context.getString(R.string.eventNotification),context)){
                 return true;
             }
         }

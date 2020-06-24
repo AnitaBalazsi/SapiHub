@@ -119,7 +119,7 @@ public class PollOptionsAdapter extends RecyclerView.Adapter<PollOptionsAdapter.
         for (int i = 0; i < size; i++){
             ImageView imageView = new ImageView(context);
             userLayout.addView(imageView);
-            DatabaseHelper.loadProfilePicture(context,imageView,users.get(i),50,50);
+            Utils.loadProfilePicture(context,imageView,users.get(i),50,50);
         }
 
         if (users.size() > size){

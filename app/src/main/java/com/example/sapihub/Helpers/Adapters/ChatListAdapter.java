@@ -63,7 +63,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ListVi
             }
         });
 
-        DatabaseHelper.loadProfilePicture(context,holder.userProfile,userId,150,150);
+        Utils.loadProfilePicture(context,holder.userProfile,userId,150,150);
 
         try {
             holder.messageDate.setText(Utils.getRelativeDate(Utils.stringToDate(lastMessage.getDate())));
@@ -73,7 +73,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ListVi
 
         if (lastMessage.getSender().equals(currentUser) && lastMessage.isSeen()){
             //appears receiver's image when seen
-            DatabaseHelper.loadProfilePicture(context,holder.notificationImage,userId,50,50);
+            Utils.loadProfilePicture(context,holder.notificationImage,userId,50,50);
         }
 
         if (!lastMessage.getSender().equals(currentUser) && !lastMessage.isSeen()){

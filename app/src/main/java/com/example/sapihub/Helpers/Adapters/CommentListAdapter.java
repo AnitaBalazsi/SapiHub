@@ -103,7 +103,7 @@ public class CommentListAdapter extends RecyclerView.Adapter<CommentListAdapter.
                     imageView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            //Utils.showImageDialog(context,null); //todo
+                            Utils.showImageDialog(context,null);
                         }
                     });
                 }
@@ -134,7 +134,7 @@ public class CommentListAdapter extends RecyclerView.Adapter<CommentListAdapter.
                 holder.authorName.setText(author.getName());
             }
         });
-        DatabaseHelper.loadProfilePicture(context,holder.authorImage,model.getAuthor(),100,100);
+        Utils.loadProfilePicture(context,holder.authorImage,model.getAuthor(),100,100);
     }
 
 

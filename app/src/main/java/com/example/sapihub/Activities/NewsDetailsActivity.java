@@ -126,14 +126,14 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("getCommentNumber",databaseError.getMessage());
             }
         });
     }
 
     private void loadImages() {
         if (selectedNews.getImages() != null){
-            for (String imageName : selectedNews.getImages()){
+            for (final String imageName : selectedNews.getImages()){
                 DatabaseHelper.getNewsAttachment(selectedNews, imageName, new FirebaseCallback() {
                     @Override
                     public void onCallback(final Object object) {
@@ -143,7 +143,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
                             imageView.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    //todo dialog
+                                    Utils.showImageDialog(NewsDetailsActivity.this, (Uri) object);
                                 }
                             });
                         }
@@ -192,7 +192,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
 
             @Override
             public void onViewImage(int position) {
-                //Utils.showImageDialog(NewsDetailsActivity.this,null); //todo
+                Utils.showImageDialog(NewsDetailsActivity.this,null);
             }
         }));
 
@@ -243,20 +243,19 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
         title.setText(selectedNews.getTitle());
         content.setText(selectedNews.getContent());
         for (String word : selectedNews.getContent().split(" ")){
+            //check if content contains link
             if (Patterns.WEB_URL.matcher(word).matches()){
-                if (word != null){
-                    linkView.setLink(word, new ViewListener() {
-                        @Override
-                        public void onSuccess(boolean status) {
-                            linkView.setVisibility(View.VISIBLE);
-                        }
+                linkView.setLink(word, new ViewListener() {
+                    @Override
+                    public void onSuccess(boolean status) {
+                        linkView.setVisibility(View.VISIBLE);
+                    }
 
-                        @Override
-                        public void onError(Exception e) {
+                    @Override
+                    public void onError(Exception e) {
 
-                        }
-                    });
-                }
+                    }
+                });
             }
         }
 
@@ -335,6 +334,8 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
             List<String> images = new ArrayList<>();
             final String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
+
+            //upload attached images
             for (int i = 0; i < commentImageList.size(); i++){
                 Uri imageUri = commentImageList.get(i);
                 images.add(Utils.fileNameFromUri(this,imageUri));
@@ -382,7 +383,7 @@ public class NewsDetailsActivity extends AppCompatActivity implements View.OnCli
                 }
 
                 //send notification to author (if the author not commented)
-                if (!containsAuthor){
+                if (!containsAuthor && !user.getUserId().getToken().equals(user.getUserId().getToken())){
                     NotificationData notificationData = new NotificationData(selectedNews.getAuthor(),selectedNews.getTitle(),user.getName().concat(" ").concat(getString(R.string.commentNotification)),Utils.dateToString(Calendar.getInstance().getTime()));
                     DatabaseHelper.sendNotification(NewsDetailsActivity.this,notificationData);
                 }

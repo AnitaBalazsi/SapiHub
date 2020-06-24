@@ -487,12 +487,12 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
 
             if (isFinished[0] && isFinished[1]){
                 sendNotification(newsTitle);
-                finish();
             }
         }
     }
 
     private void sendNotification(final String newsTitle) {
+        //send notification for all users in selected categories
         DatabaseHelper.getUsers(this, "", new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
@@ -548,7 +548,7 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode == RESULT_OK){
+        if (resultCode == RESULT_OK && data != null){
             switch (requestCode){
                 case GALLERY_RESULT:
                     imageListView.setVisibility(View.VISIBLE);
@@ -560,11 +560,9 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
                     imageListView.getAdapter().notifyDataSetChanged();
                     break;
                 case FILE_RESULT:
-                    if (data != null){
-                        Uri fileUri = data.getData();
-                        fileList.add(fileUri);
-                        fileListView.getAdapter().notifyDataSetChanged();
-                    }
+                    Uri fileUri = data.getData();
+                    fileList.add(fileUri);
+                    fileListView.getAdapter().notifyDataSetChanged();
                     break;
             }
         }
@@ -593,7 +591,7 @@ public class AddNewsActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void onViewImage(int position) {
-        //Utils.showImageDialog(this,null); //todo
+        Utils.showImageDialog(this,null);
     }
 
     @Override

@@ -27,8 +27,9 @@ public class SplashScreen extends AppCompatActivity {
     private void checkUserData() {
         sharedPreferences = getSharedPreferences("UserData", Context.MODE_PRIVATE);
         if (sharedPreferences.getString("username", null) != null){
+            //autologin
            Intent intent = new Intent(SplashScreen.this, HomeActivity.class);
-            startActivity(intent);
+           startActivity(intent);
         } else {
             Intent intent = new Intent(SplashScreen.this, LoginActivity.class);
             startActivity(intent);

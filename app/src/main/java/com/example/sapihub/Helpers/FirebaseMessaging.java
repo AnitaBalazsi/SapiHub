@@ -6,21 +6,14 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
-import android.preference.PreferenceManager;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
 import com.example.sapihub.Activities.HomeActivity;
-import com.example.sapihub.Helpers.Database.DatabaseHelper;
-import com.example.sapihub.Model.Notifications.NotificationData;
 import com.example.sapihub.R;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-
-import java.util.Calendar;
 
 public class FirebaseMessaging extends FirebaseMessagingService {
     public static final int notification_id = 1;
@@ -33,26 +26,26 @@ public class FirebaseMessaging extends FirebaseMessagingService {
         String notificationText = remoteMessage.getNotification().getTitle();
         if (notificationText.contains(getString(R.string.newPostNotification))){
             //check if notifications are enabled
-            if (Utils.checkIfEnabled(getString(R.string.postNotification),this)){
+            if (Utils.checkIfNotificationEnabled(getString(R.string.postNotification),this)){
                 sendNotification(remoteMessage);
             }
         }
 
         if (remoteMessage.getNotification().getBody().contains(getString(R.string.commentNotification)) ||
             remoteMessage.getNotification().getBody().contains(getString(R.string.likeNotification))){
-            if (Utils.checkIfEnabled(getString(R.string.commentNotifSetting),this)){
+            if (Utils.checkIfNotificationEnabled(getString(R.string.commentNotifSetting),this)){
                 sendNotification(remoteMessage);
             }
         }
 
         if (notificationText.contains(getString(R.string.upcomingEvent))){
-            if (Utils.checkIfEnabled(getString(R.string.eventNotification),this)){
+            if (Utils.checkIfNotificationEnabled(getString(R.string.eventNotification),this)){
                 sendNotification(remoteMessage);
             }
         }
 
         if (notificationText.contains(getString(R.string.newMessage))){
-            if (Utils.checkIfEnabled(getString(R.string.messageNotification),this)){
+            if (Utils.checkIfNotificationEnabled(getString(R.string.messageNotification),this)){
                 sendNotification(remoteMessage);
             }
         }

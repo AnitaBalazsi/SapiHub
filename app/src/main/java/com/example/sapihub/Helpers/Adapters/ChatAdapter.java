@@ -89,7 +89,7 @@ public class ChatAdapter extends FirebaseRecyclerAdapter<Message, ChatAdapter.Li
                 holder.imageMessage.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                      // Utils.showImageDialog(context, null); //todo
+                        Utils.showImageDialog(context, null);
                     }
                 });
                 loadImageMessage(holder.imageMessage,model.getContent());
@@ -101,6 +101,9 @@ public class ChatAdapter extends FirebaseRecyclerAdapter<Message, ChatAdapter.Li
                     public void onSuccess(ListResult listResult) {
                         for (final StorageReference file : listResult.getItems()){
                             holder.fileName.setText(file.getName());
+                            if (getItemViewType(position) == user_type_receiver){
+                                holder.fileName.setTextColor(context.getColor(R.color.colorWhite));
+                            }
                             holder.fileLayout.setVisibility(View.VISIBLE);
                             holder.fileAttachment.setOnClickListener(new View.OnClickListener() {
                                 @Override
@@ -123,7 +126,7 @@ public class ChatAdapter extends FirebaseRecyclerAdapter<Message, ChatAdapter.Li
                     @Override
                     public void onCallback(Object object) {
                         News news = (News) object;
-                        DatabaseHelper.loadProfilePicture(context,holder.authorImage,news.getAuthor(),100,100);
+                        Utils.loadProfilePicture(context,holder.authorImage,news.getAuthor(),100,100);
                         holder.postTitle.setText(news.getTitle());
                         try {
                             holder.postDate.setText(Utils.getRelativeDate(Utils.stringToDate(news.getDate())));
@@ -192,7 +195,7 @@ public class ChatAdapter extends FirebaseRecyclerAdapter<Message, ChatAdapter.Li
     }
 
     private void loadProfileImage(ListViewHolder holder, Message message) {
-        DatabaseHelper.loadProfilePicture(context,holder.profilePicture,message.getSender(),100,100);
+        Utils.loadProfilePicture(context,holder.profilePicture,message.getSender(),100,100);
 
     }
 
@@ -257,7 +260,6 @@ public class ChatAdapter extends FirebaseRecyclerAdapter<Message, ChatAdapter.Li
             fileAttachment = itemView.findViewById(R.id.fileAttachment);
             fileAttachment.findViewById(R.id.deleteFile).setVisibility(View.GONE);
             fileName = fileAttachment.findViewById(R.id.fileName);
-            fileName.setTextColor(context.getColor(R.color.colorWhite));
 
             message.setOnClickListener(new View.OnClickListener() {
                 @Override

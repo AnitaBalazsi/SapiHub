@@ -69,9 +69,9 @@ public class DeadlinesActivity extends AppCompatActivity implements OnDayClickLi
                 for (DataSnapshot eventData : dataSnapshot.getChildren()){
                     Event event = eventData.getValue(Event.class);
 
-                    //shows only events that are not over yet
                     Date eventDate = null;
                     try {
+                        //add events to calendar
                         eventDate = Utils.stringToDate(event.getDate());
                         Calendar calendar = Calendar.getInstance();
                         calendar.setTime(eventDate);
@@ -82,6 +82,7 @@ public class DeadlinesActivity extends AppCompatActivity implements OnDayClickLi
                     }
 
                     if (date != null){
+                        //add event details to selected date
                         Calendar calendarSelected = Calendar.getInstance();
                         calendarSelected.setTime(date);
                         Calendar calendarEvent = Calendar.getInstance();

@@ -15,6 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
+        <activity android:name=".Activities.ViewFileActivity"></activity>
         <activity android:name=".Activities.TimetableActivity" />
         <activity android:name=".Activities.SettingsActivity" />
         <activity android:name=".Activities.DeadlinesActivity" />

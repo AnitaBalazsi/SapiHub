@@ -14,11 +14,9 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -113,7 +111,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 for (DataSnapshot messageData : dataSnapshot.getChildren()){
                     Message message = messageData.getValue(Message.class);
                     if (message.getReceiver().equals(currentUserId) && message.getSender().equals(userId)){
-                        //set message as seen in database and list
+                        //set message as seen
                         messageData.getRef().child("seen").setValue(true);
                     }
                 }
@@ -152,7 +150,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        DatabaseHelper.loadProfilePicture(this,profilePicture,userId,100,100);
+        Utils.loadProfilePicture(this,profilePicture,userId,100,100);
     }
 
     private void initializeVariables() {
@@ -267,7 +265,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private String fileName(Uri uri) {
+    private String getFileName(Uri uri) {
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
         cursor.moveToFirst();
@@ -282,7 +280,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         progressDialog.show();
 
         final String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-        DatabaseHelper.addChatAttachment(currentUserId.concat(date),fileName(data), data, new FirebaseCallback() {
+        DatabaseHelper.addChatAttachment(currentUserId.concat(date), getFileName(data), data, new FirebaseCallback() {
             @Override
             public void onCallback(Object object) {
                 if (object != null){

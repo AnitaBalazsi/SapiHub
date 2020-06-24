@@ -62,7 +62,7 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
             }
         });
 
-        DatabaseHelper.loadProfilePicture(this,profilePicture,userId,350,350);
+        Utils.loadProfilePicture(this,profilePicture,userId,350,350);
         profilePicture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -105,7 +105,7 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onClick(View v) {
-        //sendmessage
+        //send message
         Intent intent = new Intent(UserProfileActivity.this, ChatActivity.class);
         intent.putExtra("userId",userId);
         startActivity(intent);

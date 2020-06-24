@@ -4,6 +4,7 @@ package com.example.sapihub.Fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,7 +79,7 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("getUsers",databaseError.getMessage());
             }
         });
     }
@@ -120,7 +121,7 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                    Log.d("ChatUsersFragment",databaseError.getMessage());
                 }
             });
         } else {
@@ -146,7 +147,7 @@ public class ChatUsersFragment extends Fragment implements UserListAdapter.UserC
                 }
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                    Log.d("ChatUsersFragment",databaseError.getMessage());
                 }
             });
         } else {

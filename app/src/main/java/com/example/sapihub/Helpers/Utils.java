@@ -3,9 +3,11 @@ package com.example.sapihub.Helpers;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -14,6 +16,7 @@ import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.provider.OpenableColumns;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
@@ -25,8 +28,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.sapihub.Activities.ChatActivity;
+import com.example.sapihub.Activities.ViewFileActivity;
 import com.example.sapihub.Helpers.Adapters.UserListAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Database.FirebaseCallback;
@@ -95,7 +100,7 @@ public class Utils {
         }
     }
 
-    public static void downloadFile(Context context, String fileName, Uri uri) {
+    public static void downloadFile(Context context, final String fileName, Uri uri) {
         Toast.makeText(context,context.getString(R.string.downloading),Toast.LENGTH_LONG).show();
         DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(uri);
@@ -104,6 +109,19 @@ public class Utils {
         request.setDestinationInExternalFilesDir(context,DIRECTORY_DOWNLOADS,fileName);
 
         downloadManager.enqueue(request);
+        BroadcastReceiver downloadComplete = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                //open file
+                if (fileName.contains(".pdf")){
+                    Intent openFile = new Intent(context, ViewFileActivity.class);
+                    openFile.putExtra("fileName",fileName);
+                    context.startActivity(openFile);
+                }
+            }
+        };
+        context.registerReceiver(downloadComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
     }
 
     public static CharSequence getRelativeDate(Date date){
@@ -274,7 +292,7 @@ public class Utils {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                        Log.d("createChat",databaseError.getMessage());
                     }
                 });
             }
@@ -300,16 +318,38 @@ public class Utils {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("getChatId",databaseError.getMessage());
             }
         });
     }
 
-    public static boolean checkIfEnabled(String key,Context context){
+    public static boolean checkIfNotificationEnabled(String key, Context context){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         boolean isEnabled = sharedPreferences.getBoolean(key,false);
         return isEnabled;
     }
 
 
+    public static void loadProfilePicture(final Context context, final ImageView imageView, String userId, final int width, final int height){
+        if (context != null){
+            DatabaseHelper.getProfilePicture(userId, new FirebaseCallback() {
+                @Override
+                public void onCallback(Object object) {
+                    if (object != null && !((Activity)context).isDestroyed()){
+                        Uri imageUri = (Uri) object;
+                        Glide.with(context).load(imageUri.toString())
+                                .circleCrop()
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .apply(new RequestOptions().override(width, height))
+                                .placeholder(context.getDrawable(R.drawable.ic_account_circle))
+                                .into(imageView);
+                    } else {
+                        imageView.setImageDrawable(context.getDrawable(R.drawable.ic_account_circle));
+                        imageView.getLayoutParams().height = height;
+                        imageView.getLayoutParams().width = width;
+                    }
+                }
+            });
+        }
+    }
 }

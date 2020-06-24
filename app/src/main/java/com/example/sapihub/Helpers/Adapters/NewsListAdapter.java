@@ -131,7 +131,7 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
         }
 
         loadAuthorData(holder, model.getAuthor());
-        DatabaseHelper.loadProfilePicture(context,holder.currentUserImage,Utils.getCurrentUserToken(context),100,100);
+        Utils.loadProfilePicture(context,holder.currentUserImage,Utils.getCurrentUserToken(context),100,100);
         checkIfSaved(holder.savePostImage, model);
 
         if (model.getFiles() != null){
@@ -405,7 +405,7 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
                         }
 
                         //send notification to author (if the author not commented)
-                        if (!containsAuthor){
+                        if (!containsAuthor && !user.getUserId().getToken().equals(selectedNews.getAuthor())){
                             NotificationData notificationData = new NotificationData(selectedNews.getAuthor(),selectedNews.getTitle(),user.getName().concat(" ").concat(context.getString(R.string.commentNotification)),Utils.dateToString(Calendar.getInstance().getTime()));
                             DatabaseHelper.sendNotification(context,notificationData);
                         }
@@ -432,7 +432,7 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                        Log.d("getCommentList",databaseError.getMessage());
                     }
                 });
             }
@@ -501,7 +501,7 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
 
                 @Override
                 public void onError(Exception e) {
-
+                    Log.d("loadUrl",e.getMessage());
                 }
             });
         }
@@ -541,7 +541,7 @@ public class NewsListAdapter extends FirebaseRecyclerAdapter<News,NewsListAdapte
             public void onCallback(Object object) {
                 User author = (User) object;
                 holder.author.setText(author.getName());
-                DatabaseHelper.loadProfilePicture(context,holder.authorImage,authorToken,130,130);
+                Utils.loadProfilePicture(context,holder.authorImage,authorToken,130,130);
             }
         });
     }

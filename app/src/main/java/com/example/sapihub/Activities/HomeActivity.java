@@ -22,15 +22,17 @@ import com.example.sapihub.Fragments.ProfileFragment;
 import com.example.sapihub.Helpers.Adapters.ViewPagerAdapter;
 import com.example.sapihub.Helpers.Database.DatabaseHelper;
 import com.example.sapihub.Helpers.Utils;
+import com.example.sapihub.Model.Notifications.FCMToken;
 import com.example.sapihub.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 public class HomeActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener, ViewPager.OnPageChangeListener, AdapterView.OnItemClickListener {
     private ViewPager viewPager;
     private DrawerLayout drawerLayout;
     private ViewPagerAdapter adapter;
     private BottomNavigationView bottomNavigationView;
-    private int selectedMenuItem = -1;
+    private int selectedMenuItem = 1;
     private ListView menuList;
 
     @Override
@@ -72,17 +74,12 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
 
         viewPager.addOnPageChangeListener(this);
         viewPager.setCurrentItem(1); //sets home fragment as highlighted
+
+        DatabaseHelper.saveFCMToken(new FCMToken(FirebaseInstanceId.getInstance().getToken()), Utils.getCurrentUserToken((HomeActivity.this)));
     }
 
     public void setNavigationItem(int position){
-        if (selectedMenuItem != -1){
-            bottomNavigationView.getMenu().getItem(selectedMenuItem).setChecked(false);
-        }
-        else {
-            //first swipe
-            bottomNavigationView.getMenu().getItem(1).setChecked(false);
-        }
-
+        bottomNavigationView.getMenu().getItem(selectedMenuItem).setChecked(false);
         bottomNavigationView.getMenu().getItem(position).setChecked(true);
         selectedMenuItem = position;
     }

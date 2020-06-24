@@ -472,28 +472,6 @@ public class DatabaseHelper {
         });
     }
 
-    public static void loadProfilePicture(final Context context, final ImageView imageView, String userId, final int width, final int height){
-        if (context != null){
-            DatabaseHelper.getProfilePicture(userId, new FirebaseCallback() {
-                @Override
-                public void onCallback(Object object) {
-                    if (object != null && !((Activity)context).isDestroyed()){
-                        Uri imageUri = (Uri) object;
-                        Glide.with(context).load(imageUri.toString())
-                                .circleCrop()
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                .apply(new RequestOptions().override(width, height))
-                                .placeholder(context.getDrawable(R.drawable.ic_account_circle))
-                                .into(imageView);
-                    } else {
-                        imageView.setImageDrawable(context.getDrawable(R.drawable.ic_account_circle));
-                        imageView.getLayoutParams().height = height;
-                        imageView.getLayoutParams().width = width;
-                    }
-                }
-            });
-        }
-    }
 
     public static void sendNotification(final Context context, final NotificationData notificationData){
         DatabaseHelper.tokensReference.orderByKey().equalTo(notificationData.getUser()).addValueEventListener(new ValueEventListener() {

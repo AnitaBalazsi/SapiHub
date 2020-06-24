@@ -64,7 +64,6 @@ public class ChatsFragment extends Fragment implements ChatListAdapter.ContactCl
         super.onViewCreated(view, savedInstanceState);
 
         context = getContext();
-        DatabaseHelper.saveFCMToken(new FCMToken(FirebaseInstanceId.getInstance().getToken()), Utils.getCurrentUserToken((context)));
         initializeVariables();
         getMessageList(new FirebaseCallback() {
             @Override
@@ -72,11 +71,11 @@ public class ChatsFragment extends Fragment implements ChatListAdapter.ContactCl
                 //sort messages by date
                 Collections.sort(chatList, Collections.reverseOrder(new Comparator<Chat>() {
                     @Override
-                    public int compare(Chat o1, Chat o2) {
-                        Message l1 = o1.getMessages().get(o1.getMessages().size() - 1);
-                        Message l2 = o2.getMessages().get(o2.getMessages().size() - 1);
+                    public int compare(Chat chat1, Chat chat2) {
+                        Message message1 = chat1.getMessages().get(chat1.getMessages().size() - 1);
+                        Message message2 = chat2.getMessages().get(chat2.getMessages().size() - 1);
                         try {
-                            return Utils.stringToDate(l1.getDate()).compareTo(Utils.stringToDate(l2.getDate()));
+                            return Utils.stringToDate(message1.getDate()).compareTo(Utils.stringToDate(message2.getDate()));
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
@@ -117,7 +116,7 @@ public class ChatsFragment extends Fragment implements ChatListAdapter.ContactCl
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("getMessages",databaseError.getMessage());
             }
         });
     }

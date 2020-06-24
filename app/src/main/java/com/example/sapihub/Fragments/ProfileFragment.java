@@ -118,7 +118,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        DatabaseHelper.loadProfilePicture(context,profilePicture,Utils.getCurrentUserToken(context),350,350);
+        Utils.loadProfilePicture(context,profilePicture,Utils.getCurrentUserToken(context),350,350);
     }
 
     private void initializeVariables() {
@@ -209,7 +209,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                             @Override
                             public void onCallback(Object object) {
                                 //refresh imageview
-                                DatabaseHelper.loadProfilePicture(context,profilePicture,Utils.getCurrentUserToken(context),350,350);
+                                Utils.loadProfilePicture(context,profilePicture,Utils.getCurrentUserToken(context),350,350);
                             }
                         });
                     }})
@@ -237,7 +237,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                 @Override
                 public void onCallback(Object object) {
                     loadingDialog.dismiss();
-                    DatabaseHelper.loadProfilePicture(context,profilePicture,Utils.getCurrentUserToken(context),400,400);
+                    Utils.loadProfilePicture(context,profilePicture,Utils.getCurrentUserToken(context),400,400);
                 }
             });
 
